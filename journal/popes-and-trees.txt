@@ -1,0 +1,248 @@
+Popes and Trees
+Amateur Philosophy
+
+If a tree falls in the forest and no one is there to hear it, does it make a sound?
+
+Does the pope shit in the woods?
+
+ 
+
+Beliefs are ideas that satisfy your events, emotions, and expectations
+
+One time a long time ago, Isaac Newton was sitting under an apple tree and an apple fell on his head. He then came up with the concept of gravity. Well, he came up with a lot of concepts as he pretty much put his mind to use to come up with the fundamental laws of physics. He wanted to explain why the apple fell on his head, so he postulated the concept of acceleration, momentum, forces, and so on and so forth
+
+Those where his beliefs. He saw an event and wanted to explain it. He made a lot of experiments and made conclusions. Today we consider those conclusions, including the concept of gravity, to be the laws of physics
+
+No, I do not expect you to be a physicist but the point I am trying to make is that Newton had an event and wanted to explain it. He then encountered many more events (intentionally through the concept of experimentation) to found his beliefs
+
+That is what beliefs are. A belief is an opinion that satisfies your events
+
+Let's say every time you drank coffee before a job interview you tended to do better. And if you were… hungover you didn’t fare well. So what is the belief that you would form? Drinking coffee the morning of and making sure you're not drunk the night before will land you more opportunities. This is a belief. No one said that this is true and factual, but you had many interviews and many different states of mind while doing them and found out that "hey, this works better when I do this and not so much when I do that" and made that a belief. You had events in which the outcome was better in one scenario and not so much with another, so you made the belief that whatever was the difference between the two was the reason why
+
+To speed up this discussion, there is the concept of nihilism. In a philosophical sense, this is the idea that nothing exists. There are many angles in which this is used. In a general opinionated sense, this is the belief that nothing matters too much, and if they did matter, they're not really all that important. There is no truth; you're just another individual among billions who are living among billions more who died and will ever live. You're just a small speck in the massive universe.
+
+To give commentary, caring less does better in life (sometimes) because the less you care about things, the more you seem important and you will receive more respect as it seems like you can afford to not care. I will come back to this later in another article since that is a complex topic for a different discussion.
+
+To speed up this discussion even more regarding nihilism:
+
+Imagine a fortune of money. It could be a fortune of a million dollar bills in a stack. That is a fortune of money made up of dollar bills
+
+Now you take a single dollar bill from the stack. Is $999,999 still a fortune of money? Yes it is. A million single dollar bills was a fortune of money, so surely taking one dollar from a million does not change the fact that you have a fortune of money even if it is incrementally less than before
+
+Let's say that you took another dollar from that fortune. Is $999,998 still a fortune of money? Of course it is. A single dollar from a fortune does not make it not a fortune. We established that $999,999 was worth a fortune and that a single dollar less of a fortune is still a fortune
+
+Now…. Let's do this short of a million times. The reasoning is still the same. A dollar lost does not make a fortune not a fortune anymore. But if we do this one less a million times, then we end up with a single dollar, which is not a fortune
+
+It is seemingly irrational to take something that is indeed a fortune to deem it not a fortune just because we took a single dollar from it. But if we take this seemingly rational train of thought, we end up with a single dollar which is obviously not a fortune
+
+The conditions are as follows:
+
+    A million of something is a lot
+
+    One of something is not a lot
+
+    One less of a lot is still a lot
+
+So when did a fortune of money stop being a fortune?
+
+Or you take a perfectly white sheet of paper and make it a little more gray. But it still looks white. The whites within printer paper are not actually perfect whites; similarly, engineers try to make computer screens that can display perfect blacks but they aren’t actually pitch black. So if we make a white a little more gray 50 times, then it becomes black. But when did white become black? After the first time? After the 25th time? After the 49th time?
+
+This is also known as the Sorites Paradox
+
+The nihilistic philosophical school of thought concludes that there is no such thing as a 'fortune’ or no such thing as 'white' or 'black'. A $1000 is not a fortune, a $1,000,000 is not a fortune, and a $1,000,000,000 is not a fortune. Since nothing is a fortune, taking a dollar from any amount of money does not make it less a fortune since all amounts are not fortunes to begin with. Colors don't exist. It is a philosophically valid solution in solving Sorties' Paradox, but insane in a practical sense 
+
+There is another experiment known as the Liar Paradox. This is simple. Take the following sentence:
+
+"This statement is False”
+
+If this statement is True, then the things that the statement states are True, that is, it is False
+
+Wait no
+
+If this statement is False, then the things that the statement states are False. That is, it is True
+
+Wait no
+
+Bivalence is the principal that a statement is either true or not true. But with the Liar paradox, it cannot be either true or false [1]. And bivalence seems like such an obviously truthful fact, it either has to be true or not! But you throw the Liar Paradox at it and find that there is a case in which it can't be either. Then you have the Sorites Paradox, which does more than get rid of True or False altogether as it concludes that words have no meaning
+
+To speed up this discussion even further, rationalism (the belief that truth comes from reason) seems like a sound point of view but since even that doesn't always work or is emotionally unsatisfying, we then turn to empiricism (the belief that truth comes from the senses). While Newton erred towards the school of science as his beliefs became the "laws of physics", most of our beliefs outside math and science don't seem to be always true. But we make them anyway. The reason is because of empiricism, more or less. We have events, and we take the events that we have been through to be the basis of truth. Newton himself was considered a philosopher before we decided that it should be called physics
+
+———————————————————
+
+I had a friend tell me, "Everyone has different experiences and events so everyone has a unique identity and worldview"
+
+Easy example that is actually true for everyone: let's say that you went to Place Whatever for a vacation and you loved it. You went for a second time and you loved it. You went there for a third time and you loved it. Yada yada yada.
+
+But hey, there is your friend, who went to the same Place Whatever and hated it. Then they forced themselves to go again to that place and hated it again. And forced themselves for a third time and still hated it. You might have the belief that Place Whatever is an awesome place and your friend might have the belief that the same place is terrible
+
+This is the foundation of racism, sexism, and culturalism. All girls cheat! Yeah no shit, if you're a straight guy who only dates straight girls, then yeah, everyone who cheats on you will be a girl. All guys cheat! Yeah no shit, if you're a straight girl who only dates straight guys, then yeah you will think that. What, like you're a straight guy who dated another guy and got cheated on and then thought, "Oh yeah, guys cheat too" or the same with being a lesbian as a straight girl?
+
+Let's say that you were new in town and heard of Jack's Bar and Jill's Café. You go ask 100 people which place they like better and 90% say they like Jack's Bar and 10% say they like Jill's Café. Oh, it turns out that Jill's Café is vegetarian and Jack's Bar has really good barbeque. And you happen to be a vegetarian. Are your beliefs going to be based on what others believe or do you wish to have beliefs that nearly everyone else might oppose? [3]
+
+But to tie it back to Place Whatever being awesome or not, let's say for example that that place was Florida, and you went only when it was sunny and your friend only went when there was a hurricane hitting the coast. Yeah of course, you will think Florida is awesome and your friend thinks that that place is stressful. That's not Florida's fault. It really came down to planning, so it is more or less the individual’s decisions that caused those beliefs. Florida in a geographical sense doesn’t care about who comes in or out or when they do so
+
+Having no beliefs seems satisfactory when a lot of the beliefs that we have can be eventually debunked. They probably will. But that is no good for those who are trying to better their chances at success or get a handle of the larger concepts in play among the grand scheme of things or for the time being
+
+Every baseball player has a statistic. Analysts even broke down these stats to their batting average in each part of the box. They take the box and split it into 3x3 boxes and see that hey, this batter is really good at hitting balls in that corner but not that hot in another corner. So the pitcher knows that hey, maybe I should throw at that corner if I want to strike them out. Or maybe this batter is really good with curve balls, but not so good with two-seamers
+
+So yeah, if you want to take Sorties Paradox for all that it is and conclude that words have no meaning and ergo, nothing matters, then sure. But there is a danger to even analysis: just because you pitched to a batter's worst area with your best possible pitch doesn't mean they can't smash it out of the park. Statistics are guidelines based on average results, not definite causal relationships and processes. Maybe a batter knows that they’re not so good with particular pitches and will intentionally put extra practice in that specialty knowing that future pitchers will try to capitalize off their weakness
+
+But as much as I both like and dislike nihilism, I don't ever think there will ever be a politician running for presidency saying:
+
+"Yeah so I like the way things are. I don't really plan on starting any wars or ending any, we don't really need to pass any new bills and the economy is already on track on getting better every year. Yeah, we don't get along with these people and I don't think there is much we can do about it, and yeah it sucks that history that already happened centuries ago happened but that's in the past and sure, I get how the societal problems that existed since humankind still exist since yeah we learned to be alcoholics before the Roman Empire existed so yeah it's still probably going to be that way even if we have around ten other recreational drugs that came into practice and sure I get that your spouse is a piece of shit but yeah I'll just tell you to shut up and suck it up
+
+Vote for me. Go fuck yourself and thank you"[2]
+
+Yeah, I don't think a nihilistic president is going to get a lot of votes, even if we might agree with them at times
+
+———————————————————
+
+The one thing that people who give advice, including myself, fear the most is the idea of the possibility of being wrong. So nihilism seems nice. You can't be wrong in the things you believe in if you don't have anything you believe in in the first place. Outside Math and Science, where concepts are formed so they cannot be infallible in virtually all circumstances, our personal and emotional beliefs only have so much to go on. The important part is that we understand that: 
+
+    We make them
+
+    They are not always true
+
+    We cannot go without them
+
+The solution in satisfying these realities is to:
+
+    Be open-minded about the beliefs we have no matter how true we think they are
+
+    Experience more of the world so that you have more to go off of to constantly re-evaluate our beliefs
+
+    Follow your instincts while being compassionate
+
+There are cases in which we have a hard time letting go from a belief and this happens when we have emotional attachments with them. Let's say that you came from a city or school with a football, baseball, or basketball team and you know what? That team is the best team. Even if they keep losing, they are the best team in your worldview. Well, not the best, but you will still love the team you are associated with. There is an emotional attachment to the belief that Team Whatever is a part of your identity. You're not going to be a Southerner who screams "Go Pats!" just for the hell of it. There is nothing particularly wrong with being a fan of any team, but realize that loyalty to teams, which aren't even beliefs, is strong. How much more loyalty do we have to beliefs that we carry with us? 
+
+To bring it back to the concept of Sorties Paradox, there is a solution called multi-valued logic. That is, not all things are necessarily true or false. I would say that this is true with beliefs as well. Beliefs aren't true or false, but some beliefs are better than others
+
+As a kid there would be a teacher who says, "There is no such thing as a stupid question", then someone would ask a question as stupid as, "So do caterpillars have legs?" then the teacher would just do a facepalm as if they were thinking “Why did I say that”
+
+So yeah, there is no such thing a stupid question. Or or they say. I am not trying to tell you what to believe in, just don't look like a total fool when some opposing view is more funny or logically sound
+
+There is no magic formula that will make things work all the time. With all the self-help you can come across, you will probably be a little better than you were before, but you won't be perfect or be able to achieve all the things you wanted to. Your dream life might be forever a dream. There is no perfect worldview
+
+Along the course of life we do have beliefs regarding math, science, engineering, people, politics, history, medicine, philosophy, and so on and so forth. But there is a question of belief that is more important than all others: Who am I? How important am I? What is my purpose in life? Do people like me? What matters to me? What do I want?
+
+From rationalism to empiricism towards existentialism, these are the questions that seem to matter more than all. If a tree falls in the forest and no one is there to hear it, does it make a sound?
+
+What about the case when "Does the pope shit in the woods?" So when a tree falls in the forest and no one hears about it, it pretty much didn't happen, but a pope can't shit in the woods and not have everyone else know about it even if no one saw it?
+
+People will have beliefs about you, like we think how the pope shits in the woods. These beliefs exist, even if you don't hear about it. These beliefs can be good and bad. But this is not revolutionary. The hard part is being able to recognize these beliefs before you're told so
+
+Matthew 6 says: “And when you pray, do not be like the hypocrites, for they love to pray standing in the synagogues and on the street corners to be seen by others. Truly I tell you, they have received their reward in full. But when you pray, go into your room, close the door and pray to your Father, who is unseen. Then your Father, who sees what is done in secret, will reward you. And when you pray, do not keep on babbling like pagans, for they think they will be heard because of their many words. Do not be like them, for your Father knows what you need before you ask him 
+
+The point that Jesus stressed was that prayer should never be done so that you seek validation from others who are watching. It is strictly a form of communication to God, and when you pray to look good to others then the purpose of prayer ends there. Not that I expect you to be religious, but when people post "Thoughts and prayers to [whatever shitty event that happened on the media]", you're actually not following Jesus' concept of prayer
+
+But even for the non-religious, good deeds should be done out the kindness of your heart, not for the recognition that others give you when you do them. But enough about kindness, what about self-esteem? 
+
+If you have a nice outfit and no one told you that they liked your outfit, do you have a nice outfit?
+
+If you made a real cool mod to your car and only a few of your car junkies really appreciated it, was it a real cool mod?
+
+If you made a nice meal and they say, "Oh I like the way it tastes" for the 100th time, are they saying it because they like it or because it is a routine?
+
+Do we need explicit validation to know that we are doing a good a job? So what happens when you have a productive day at work then you come home and your family starts complaining to you and seemingly don't appreciate the work you did nor know how much sweat and stress you put up with for the entire day? It doesn't feel nice, to put in effort and not be recognized for it. Does it make your accomplishments value any less? I think not
+
+What if you have a birthday in which no one celebrated with you? Does that make it any less special of a day for you? I think not
+
+What happens when you become intimate with another; do you have to brag about it and be recognized for it? Was the experience with another special in and of itself, or do you further need the recognition that such intimacy happened from those not involved?
+
+Or perhaps you went on a nice vacation. Do you need to post pictures on social media and let others know that you had a good time to be fulfilled, and are you okay with the possibility that someone broke in your house because you let the public domain know that you were on vacation? When your coworker asks you reluctantly "so how was it" and you go on a spiel about how awesome it was when they just wanted a short response, what was the lasting effect of the vacation in your everyday life? We do need good memories to think about in future days, but what value is a memory to other people? 
+
+Benjamin Franklin was known to make a piece of propaganda of a snake cut to bits, with the caption saying, "Join or Die". The meaning of this illustration was that the colonies needed to join together to fight the British Empire or else they would all suffer. But in a social sense, it does have resemblance. You need to either adapt to the way people behave or be left behind. The alternative to all this is to rise above the drama
+
+In a societal sense, there are some accuracies. If you do not adapt to the way that people operate as much as you don't like those ideals, then you won't be able to fit in. Although the problem with "Join or Die" is that it assumes there is only one group in which you are either a member of or not. This is not entirely true. The better saying is that birds of a feather flock together, meaning that you will be surrounded by people who have the same values you do
+
+Although so far I have talked about validation, which is, the feedback that you receive when you do things well; what about criticism? While there are cases in which you are not complimented for all your good work, there are cases in which you receive negativity, and not all of it is called for
+
+I know some of the hottest girls who had zero friends. They were nice people with good character. They had the most awesome bodies, but no one liked them
+
+One of these girls told me that she went to class to find a seat on the first day. Soon after, she got "boxed out", meaning that girls immediately took seats next to her in all directions to make sure that she never got to sit next to a guy. She told me personally she wished the next few years of her life was simply just done and over with and that she wanted to get married in a courthouse. She was that lonely. Of all the people I ever texted, she was the fastest in responding to me
+
+I know a girl who was pretty hot. I heard years later she came from a private school where everyone hated her, explaining why she switched to my high school. She took classes with people my age even though she was a year younger than all of us
+
+Does being on the receiving end of a lot of hate mean that you are not a valuable person? I think not
+
+Take for example Brittney Spears. She was one of the hottest and most successful women known. For all the talk people do about promoting women's success, people taunt her for shaving her head and her admittances to the psych ward. We want people to be successful, but not too successful that they become god-like
+
+You can be a great person, but being better does not mean that you will have less problems. You will face resistance from those who simply want to take you down. The naïve opinion is that the more accomplished you are, the less stress you have, but this is not entirely true. You have stress about different things, including negativity from those who do so simply because they want to and can 
+
+Self perception is a concept that is not easy to deal with. There are more people who like you than say so, there are people who say they like you who don't really, there are people who say they hate you but are misplaced, and there are people who do hate you but don't tell you so
+
+This is indeed a lot to think about. There is a lot of paranoia that can result from this as we try to determine other people's thoughts and change them if undesired, but the reality is that you won't know the whole truth nor change them even if you did know. There is a solution to this, being that you don’t care. But between the lines of agape versus sociopathy, bivalance, and nihilism, how much should you care of what others think of you? 
+
+In a modern sense every individual has a unique personality. What is it that you are trying to accumulate? Yes, there are people who want to achieve success with physical goods, be it money or property. There are people who try to accumulate this with knowledge, others with fame, and some with artistic talent. There are people who just want to get by paycheck to paycheck and try to maximize how much they get biweekly. There are people who want to start a family. There are people who just want to have sex with as many people as possible. Some fitness freaks want to be as big as possible. Some want to be as strong as possible. Some want to be as flexible as possible. Some want to be great at martial arts. Some just want to have good cardio and live a long life
+
+There is a saying: it is better to have four quarters than a hundred pennies. I mean, I like this saying. But people, including myself, just can't help it but feel good when we get more validation. Although for myself because I can be coldblooded, I often cared less after a day passes when it comes to internet interactions that are done with a simple tap or two
+
+But regarding beliefs, some people do like having a hundred pennies. And some even have millions of them. And for some of them, validation is their professional job, be it as a celebrity or as a politician
+
+There are painters who were never famous their whole entire lives, only to be famous after they died. There are musicians who were famous when they were alive, and still famous even centuries after they died. For these people, their fame lasts longer than their actual life span
+
+There is a saying: you die twice. You die once when you take your last breath, and you die a second time the last time someone says your name. For my great-great-great-grandparents, they all died twice a long time ago. But Mozart is physically dead but his name is still mentioned constantly, and will be for a long time
+
+How tragic it must be, to be loved, but not even be alive to hear about it, even if the people who liked you after you died would like to tell you about it
+
+Such is the case when we are alive. We all have people we admire who are dead. We like them, and if we could, we might tell them, "Hey, I like what you did". But they're dead. We all have several people who come to mind. If you can receive validation and don't get to live to hear it, is the value of your success less in your opinion? And if you are alive while those positive opinions existed but never actually got to come across it, is the value of your success less in your opinion? 
+
+For me myself, I had four grandparents and only one of them is alive at the point of me writing this article. In order:
+
+My grandmother on my mom's side died of a heart attack when I was seven years old
+
+My grandfather on my mom's side died when I was in the middle school or earlier. I forget. I only met him once. He had a girlfriend that he got along with after his wife (my grandmother) died, and she took a lot of his inheritance. He was an engineer and worked in Saudi Arabia for a big part of his life. He spoke fluent Arabic as a Korean. But then he formed a relationship with a random (to us) woman who eventually took a lot of his inheritance
+
+Momma told me that she and the rest of her family could have sued but they did not, because she was taught not to fight over money. Or so I am told. So yeah, I only met him once when he was bedridden. He passed away shortly after
+
+My grandfather on my dad's side passed away when I was 19. I visited him in the ICU when I was in Busan. He had breathing tubes down his throat so he couldn't even speak. I was still going to USC at that point in life. I wanted him to speak to me. I did some Breaking Bad shit, where I took the alphabet on a 6x6 grid and have him indicate to me which letters he wanted me to write for him. He didn't want to really do it…
+
+He did write for me once. He took a pad and wrote:
+
+확비
+
+Which means tuition. That was the last thing he ever told me. I wanted to know what my grandpa wanted to tell me and the most important thing that was worth communicating was if my tuition was paid for. He stopped communicating after that since he was too tired. When I left the hospital for the last time, I knew that that day would be our last. He waved with both his hands at me as I said goodbye. It was goodbye. I only visit Korea every few years and he only had a couple months left. He wanted the doctors to pull the plug on him but they wouldn't let him because of the way Korean medical law was dictated. I think. It made me sad that I realized that my grandfather did indeed love me but I only realized this right before I said goodbye to him
+
+My grandmother on my dad's side is still alive at the time of me writing this article, but she's been in and out of the hospital often. She might pass soon
+
+It is possible that my grandparents all loved me even though none of them have ever told me that they even liked me at all. They all told me they liked it when I did this or that, but I don't really think any of them told me that they liked me as a person. I think this was a cultural and linguistic problem. I personally did not really get a lot of validation as a kid. I just worked hard because it was expected of me
+
+———————————————————
+
+There is a quote from Arnold Schwarzenegger that I love:
+
+“A well built physique is a status symbol. It reflects you worked hard for it, no money can buy it. You cannot borrow it, you cannot inherit it, you cannot steal it. You cannot hold onto it without constant work. It shows discipline, it shows self respect, it shows patience, work ethic and passion. That is why I do what I do
+
+This is why I love working out. You don't need external validation. You get it when you put three plates on each side of the bar and deadlift that, and let everyone else know that you can lift that much. For me personally at the time of me writing this article, my deadlift one-rep-max is 365lbs. I enjoy lifting that much and letting everyone else know that I can do that. I don’t need people to tell me that I did a good job. I know I did a good job
+
+Not that I am the sole voice in how to live your life: but live life to please yourself. Yes, don't be a narcissistic fool to the point that you do not try to please other people and not care about them, but if you do something that makes you happy and feel accomplished and no one praises you as much as you want, don't be too dismayed. External validation will come eventually if you indeed did do a good job
+
+I've been told a while ago:
+
+“You are not going to get along with everyone and not everyone is going to get along with you, and that's not their fault or yours”
+
+There are people who think differently than you do. Friction arises since everyone has different traits and beliefs that they are proud of and other characteristics that they have that aren't that great. Everyone is unique. Since we wield different strengths and weaknesses, we try to protect our ego by believing that the things we are good at are what makes a person universally desirable and the things that we are not so good at are universally trivial. We even go as far as to try and convince others that the things that they are good at are not that important. We may attack other people's identities to protect our own
+
+Since we cannot get everyone to like us, the better idea is to get along with the people who matter to us and prioritize the relationships you have with them as opposed to being universally liked. You may have to get along with people you do not like and also fail to get along with the people who you do like. Such is life. But we should all strive to get along with as many people as we can, as unlikely that may be
+
+So far I have argued that validation and hate should not be the sole factor in evaluating self worth. We cannot go without them as having zero validation and criticism is not healthy, but having more does have diminishing returns
+
+When I was in the 3rd grade I had a crush on my square dance partner. 5th grade her friend told me she had a crush on me. I told her I liked her too. Oh, I was so ecstatic. I still remember how happy I was when a different friend of hers ran out of class after school ended when I told her friend to go tell her. We dated for a year
+
+First love. It was indeed exciting
+
+Nowadays I have conversations like "Wanna join a gang bang" and I go "Eh, next time", since I don't feel that much better of a person just because I got invited to a gang bang. I got numbed to some forms of sexual desire, while others look at me saying, "dude what the hell, she liked you and you did nothing about it", to which I say, "everyone treats me like that"
+
+So have healthy ways of being validated in proper ways by proper people. And beyond that, don't go crazy because you don't get any or be coldblooded because you are accustomed to getting it all the time
+
+Self identity is a delicate subjective object. Have beliefs, as we need to live for something to feel alive. Don't be naïve, as there will be changes of heart. Love yourself, so that you can live when you don't feel loved, but love others so that you don't be seen as a coldblooded creature without a heart because you became immune to certain types of validation
+
+———————————————————
+
+[1] That a statement is not true does not mean that it is false. There is a semantic difference between the two that I skipped for the simplicity of this article
+
+[2] As this sounds like a joke, the actual practical rammification of this is is allowing the country to be ran by the Legislative Branch and the Judiciary Branch and not all three, if the president went as far as give up veto power
+
+In a realistic sense, all countries have a head of state
+
+[3] A vegan diet is not ideal as cholesterol is needed as it is the building block for testosterone and estrogen. Fish and meat are needed as it provides taurine, and without it it might cause physiological and psychological health issues. You might not want to have too much cholesterol and taurine, but it is not healthy to go completely without them

@@ -1,0 +1,4613 @@
+Texas Hold'em
+C# Code
+
+Visual Studio 2019, .NET 5.0
+
+Last Update: 14 July 2021
+
+14 July Fixes: Calculating combos fixed, number of pairs and triples were previously set to -1 with a faulty reset method - Calculation within setting properties shifted to universal methods - Ranks changed to double and reflects value of combos - Debug mode utilized and can be toggled for use in and out of development - Rank finessed so that it evaluates all kickers up to five cards, adjusted again for all combos to produce numbers that map hand strength - Royal Flush has rank 9.0 and is the highest rank - uint used on some variables - Royal Flush fixed, Flush checking duplicates reduced - Nuanced region grouping
+
+———————————————————————-
+
+using System;
+
+using System.Collections.Generic;
+
+using System.Linq;
+
+namespace Texas_Four
+
+{
+
+    class Program
+
+    {
+
+        static void Main(string[] args)
+
+        {
+
+            Console.WriteLine("Lets play Texas Holdem!");
+
+            Room room = new Room();
+
+        }
+
+    }
+
+    public class Room
+
+    {
+
+        static Random random = new Random();
+
+        // deck is actually a list of ints. the cards are dealt to the players from the ordering of the deck
+
+        public static int[] deck = new int[52];
+
+        public SortedDictionary<int, Player> playingorder = new SortedDictionary<int, Player>();
+
+        public static int Pot { get; set; }
+
+        public static int stage { get; set; }
+
+        public bool playagain = true;
+
+        public bool going = true;
+
+        public int rounds = 0;
+
+        Card c3 = new Card(); Card c4 = new Card();
+
+        public Player user = new Player("Daniel Bae", true);
+
+        Card c5 = new Card(); Card c6 = new Card();
+
+        public Player comp2 = new Player("Computer 1", true);
+
+        Card c7 = new Card(); Card c8 = new Card();
+
+        public Player comp3 = new Player("Computer 2", true);
+
+        Card c9 = new Card(); Card c10 = new Card();
+
+        public Player comp4 = new Player("Computer 3", true);
+
+        Card c11 = new Card(); Card c12 = new Card();
+
+        public Player comp5 = new Player("Computer 4", true);
+
+        Card c13 = new Card(); Card c14 = new Card();
+
+        public Player comp6 = new Player("Computer 5", true);
+
+        Card c15 = new Card(); Card c16 = new Card();
+
+        public Player comp7 = new Player("Computer 6", true);
+
+        Card c17 = new Card(); Card c18 = new Card();
+
+        public Player comp8 = new Player("Computer 7", true);
+
+        public Card burn1 = new Card();
+
+        public Card burn2 = new Card();
+
+        public Card burn3 = new Card();
+
+        public Card flop1 = new Card();
+
+        public Card flop2 = new Card();
+
+        public Card flop3 = new Card();
+
+        public Card turncard = new Card();
+
+        public Card rivercard = new Card();
+
+        int numberOfRounds = 0;
+
+        public static int mode = 0;
+
+        public Room()
+
+        {
+
+            for (int i = 0; i < 52; i++)
+
+            {
+
+                deck[i] = i;
+
+            }
+
+            deck = deck.OrderBy(x => random.Next()).ToArray();
+
+            playingorder.Add(1, user); playingorder.Add(2, comp2); playingorder.Add(3, comp3); playingorder.Add(4, comp4);
+
+            playingorder.Add(5, comp5); playingorder.Add(6, comp6); playingorder.Add(7, comp7); playingorder.Add(8, comp8);
+
+            foreach (KeyValuePair<int, Player> kvp in playingorder)
+
+            {
+
+                kvp.Value.position = kvp.Key;
+
+            }
+
+            DoRounds();
+
+        }
+
+        public void DoRounds()
+
+        {
+
+            while (true)
+
+            {
+
+                startGame();
+
+                numberOfRounds++;
+
+                Console.WriteLine("press any key to continue, or x to cancel. 1 for straight flush, 2 for royal flush");
+
+                char s = Console.ReadKey().KeyChar;
+
+                if (s == 'x')
+
+                {
+
+                    Console.WriteLine("cancelled");
+
+                    break;
+
+                }
+
+                if (s == '1')
+
+                {
+
+                    mode = 1;
+
+                    while (mode == 1)
+
+                    {
+
+                        startGame();
+
+                        numberOfRounds++;
+
+                        Console.WriteLine($"numberOfRounds is {numberOfRounds}");
+
+                        if (mode == 0)
+
+                        {
+
+                            numberOfRounds = 0;
+
+                            Console.WriteLine("press any key to continue, or x to cancel");
+
+                            char s2 = Console.ReadKey().KeyChar;
+
+                            if (s2 == 'x')
+
+                            {
+
+                                break;
+
+                            }
+
+                        }
+
+                    }
+
+                }
+
+                if (s == '2')
+
+                {
+
+                    mode = 2;
+
+                    while (mode == 2)
+
+                    {
+
+                        startGame();
+
+                        numberOfRounds++;
+
+                        Console.WriteLine($"numberOfRounds is {numberOfRounds}");
+
+                        if (mode == 0)
+
+                        {
+
+                            numberOfRounds = 0;
+
+                            Console.WriteLine("press any key to continue, or x to cancel");
+
+                            char s2 = Console.ReadKey().KeyChar;
+
+                            if (s2 == 'x')
+
+                            {
+
+                                break;
+
+                            }
+
+                        }
+
+                    }
+
+                }
+
+            }
+
+        }
+
+        public void startGame()
+
+        {
+
+            deal();
+
+#if DEBUG
+
+            printdeck();
+
+#endif
+
+            printhands(true);
+
+            flop();
+
+            turn();
+
+            river();
+
+            printhands(true);
+
+            endRound();
+
+        }
+
+        public static void shuffle()
+
+        {
+
+            deck = deck.OrderBy(x => random.Next()).ToArray();
+
+        }
+
+        public static void dealToInd(Player user, Card c1, Card c2)
+
+        {
+
+            user.AddPrivateCard(c1);
+
+            user.AddPrivateCard(c2);
+
+        }
+
+        public void deal()
+
+        {
+
+            FactoryDeck f = new FactoryDeck();
+
+            shuffle();
+
+            c3 = f.dictionary[deck[0]];                 // 0
+
+            c4 = f.dictionary[deck[8]];                 // 8
+
+            dealToInd(user, c3, c4);
+
+            c5 = f.dictionary[deck[1]];                 // 1
+
+            c6 = f.dictionary[deck[9]];                 // 9
+
+            dealToInd(comp2, c5, c6);
+
+            c7 = f.dictionary[deck[2]];                 // 2
+
+            c8 = f.dictionary[deck[10]];                // 10
+
+            dealToInd(comp3, c7, c8);
+
+            c9 = f.dictionary[deck[3]];                 // 3 
+
+            c10 = f.dictionary[deck[11]];               // 11
+
+            dealToInd(comp4, c9, c10);
+
+            c11 = f.dictionary[deck[4]];                // 4 
+
+            c12 = f.dictionary[deck[12]];               // 12
+
+            dealToInd(comp5, c11, c12);
+
+            c13 = f.dictionary[deck[5]];                // 5 
+
+            c14 = f.dictionary[deck[13]];               // 13
+
+            dealToInd(comp6, c13, c14);
+
+            c15 = f.dictionary[deck[6]];                // 6
+
+            c16 = f.dictionary[deck[14]];               // 14
+
+            dealToInd(comp7, c15, c16);
+
+            c17 = f.dictionary[deck[7]];                // 7
+
+            c18 = f.dictionary[deck[15]];               // 15
+
+            dealToInd(comp8, c17, c18);
+
+            burn1 = f.dictionary[deck[16]];             // 16
+
+            flop1 = f.dictionary[deck[17]];             // 17
+
+            flop2 = f.dictionary[deck[18]];             // 18
+
+            flop3 = f.dictionary[deck[19]];             // 19
+
+            burn2 = f.dictionary[deck[20]];             // 20
+
+            turncard = f.dictionary[deck[21]];          // 21
+
+            burn3 = f.dictionary[deck[22]];             // 22
+
+            rivercard = f.dictionary[deck[23]];         // 23
+
+        }
+
+        public void printdeck()
+
+        {
+
+            foreach (int i in deck)
+
+            {
+
+                Console.Write($"{i}, ");
+
+            }
+
+            Console.WriteLine("\b\b  ");
+
+            Console.WriteLine();
+
+        }
+
+        public void printhands(bool start)
+
+        {
+
+            if (start == true)
+
+            {
+
+                // printhand(user, true); printhand(comp2, true); printhand(comp3, true); printhand(comp4, true);
+
+                // printhand(comp5, true); printhand(comp6, true); printhand(comp7, true); printhand(comp8, true);
+
+                foreach (KeyValuePair<int, Player> kvp in playingorder)
+
+                {
+
+                    printhand(kvp.Value, true);
+
+                }
+
+            }
+
+            else
+
+            {
+
+                foreach (KeyValuePair<int, Player> kvp in playingorder)
+
+                {
+
+                    Console.WriteLine($"{kvp.Value.Name} has:");
+
+                    Player p = kvp.Value;
+
+                    foreach (SuperCard c in p.set)
+
+                        Console.WriteLine($"{c.card.number} of {c.card.suit}");
+
+                    Console.WriteLine();
+
+                }
+
+            }
+
+        }
+
+        public void printhand(Player p, bool start)
+
+        {
+
+            if (start == true)
+
+            {
+
+                foreach (SuperCard single in p.set)
+
+                {
+
+                    Console.WriteLine($"{p.Name}'s cards are {single.card.number} of {single.card.suit}\t\t");
+
+                }
+
+                Console.WriteLine($"position is {p.position}");
+
+                Console.WriteLine();
+
+            }
+
+            else
+
+            {
+
+                Console.WriteLine($"{p.Name} has:");
+
+                foreach (SuperCard c in p.set)
+
+                {
+
+                    Console.WriteLine($"{c.card.number} of {c.card.suit}");
+
+                }
+
+            }
+
+        }
+
+        public void printBoard()
+
+        {
+
+        }
+
+        public void flop()
+
+        {
+
+            Console.WriteLine($"Flop  is {flop1.number}\t\t \b\b of {flop1.suit}");
+
+            Console.WriteLine($"         {flop2.number}\t\t \b\b of {flop2.suit}");
+
+            Console.WriteLine($"         {flop3.number}\t\t \b\b of {flop3.suit}");
+
+            foreach (KeyValuePair<int, Player> kvp in playingorder)
+
+            {
+
+                kvp.Value.AddPublicCard(flop1);
+
+                kvp.Value.AddPublicCard(flop2);
+
+                kvp.Value.AddPublicCard(flop3);
+
+            }
+
+            Console.WriteLine();
+
+        }
+
+        public void turn()
+
+        {
+
+            Console.WriteLine($"Turn  is {turncard.number}\t\t \b\b of {turncard.suit}");
+
+            foreach (KeyValuePair<int, Player> kvp in playingorder)
+
+            {
+
+                kvp.Value.AddPublicCard(turncard);
+
+            }
+
+            Console.WriteLine();
+
+        }
+
+        public void river()
+
+        {
+
+            Console.WriteLine($"River is {rivercard.number}\t\t \b\b of {rivercard.suit}");
+
+            foreach (KeyValuePair<int, Player> kvp in playingorder)
+
+            {
+
+                kvp.Value.AddPublicCard(rivercard);
+
+            }
+
+            Console.WriteLine();
+
+        }
+
+        public void endRound()
+
+        {
+
+            // Top Card             0
+
+            // Pair                 1
+
+            // Two Pair             2
+
+            // Three of a kind      3
+
+            // Straight             4
+
+            // Flush                5   
+
+            // Full House           6
+
+            // Quads                7
+
+            // Straight Flush       8
+
+            // Royal Flush          9
+
+            foreach (KeyValuePair<int, Player> kvp in playingorder)
+
+            {
+
+                Console.Write($"{kvp.Value.Name}\t\t has rank {kvp.Value.rankTotal:F7} and has ");
+
+                if (kvp.Value.rankTotal < 1.0)
+
+                {
+
+                    Console.WriteLine("only a high card");
+
+                    //Console.WriteLine($"a high card of {(number)kvp.Value.kicker}");
+
+                }
+
+                else if (kvp.Value.rankTotal < 2.0)
+
+                {
+
+                    Console.WriteLine($"a Pair of {(number)kvp.Value.TopPair}s");
+
+                }
+
+                else if (kvp.Value.rankTotal < 3.0)
+
+                {
+
+                    Console.WriteLine($"a Two Pair of {(number)kvp.Value.TopPair}s and {(number)kvp.Value.LowerPair}s");
+
+                }
+
+                else if (kvp.Value.rankTotal < 4.0)
+
+                {
+
+                    Console.WriteLine($"a Triple of {(number)kvp.Value.TopTriple}s");
+
+                }
+
+                else if (kvp.Value.rankTotal < 5.0)
+
+                {
+
+                    Console.WriteLine($"a {(number)kvp.Value.TopStraight} high Straight");
+
+                }
+
+                else if (kvp.Value.rankTotal < 6.0)
+
+                {
+
+                    Console.WriteLine($"a {(number)kvp.Value.TopFlush} high Flush of {kvp.Value.FlushSuit}s");
+
+                }
+
+                else if (kvp.Value.rankTotal < 7.0)
+
+                {
+
+                    if (kvp.Value.DoubleTriple == true)
+
+                    {
+
+                        Console.WriteLine($"a Fullhouse of {(number)kvp.Value.TopTriple}s and {(number)kvp.Value.LowerTriple}s");
+
+                    }
+
+                    else if (kvp.Value.DoubleTriple == false)
+
+                    {
+
+                        Console.WriteLine($"a Fullhouse of {(number)kvp.Value.TopTriple}s and {(number)kvp.Value.TopPair}s");
+
+                    }
+
+                }
+
+                else if (kvp.Value.rankTotal < 8.0)
+
+                {
+
+                    Console.WriteLine($"a Four of a Kind of {(number)kvp.Value.TopQuad}s");
+
+                }
+
+                else if (kvp.Value.rankTotal < 9.0)
+
+                {
+
+                    Console.WriteLine($"a Straight Flush of {kvp.Value.FlushSuit} with {(number)kvp.Value.TopFlush} high");
+
+                }
+
+                else if (kvp.Value.rankTotal < 10.0)
+
+                {
+
+                    Console.WriteLine($"a Royal Flush of {kvp.Value.FlushSuit}s");
+
+                }
+
+#if DEBUG
+
+                Console.WriteLine($"top sets are flush={kvp.Value.TopFlush} toppair={kvp.Value.TopPair} topquad={kvp.Value.TopQuad} topstraight={kvp.Value.TopStraight} toptrips={kvp.Value.TopTriple}");
+
+                Console.WriteLine($"lower sets are lowpair={kvp.Value.LowerPair} lowtrips={kvp.Value.LowerTriple}");
+
+#endif
+
+                Console.WriteLine();
+
+            }
+
+            Dictionary<int, Player> copy = new Dictionary<int, Player>();
+
+            foreach(KeyValuePair<int, Player> kvp in playingorder)
+
+            {
+
+                copy.Add(kvp.Key, kvp.Value);
+
+            }
+
+            playingorder.Clear();
+
+            foreach (KeyValuePair<int, Player> kvp in copy)
+
+            {
+
+                int newKey = kvp.Key + 1;
+
+                if (newKey == 9)
+
+                {
+
+                    newKey -= 8;
+
+                }
+
+#if DEBUG
+
+                Console.WriteLine($"newkey is {newKey} and player is {kvp.Value.Name}");
+
+#endif
+
+                playingorder.Add(newKey, kvp.Value);
+
+            }
+
+            
+
+            foreach (var kvp in playingorder)
+
+            {
+
+                kvp.Value.newRound();
+
+            }
+
+        }
+
+    }
+
+    public class Player
+
+    {
+
+        public Player(string name, bool playing)
+
+        {
+
+            this.Name = name;
+
+            this.Playing = playing;
+
+            newRound();
+
+            kickerValue[1] = Math.Pow(.5, 1);
+
+            kickerValue[2] = Math.Pow(.5, 13);
+
+            kickerValue[3] = Math.Pow(.5, 12);
+
+            kickerValue[4] = Math.Pow(.5, 11);
+
+            kickerValue[5] = Math.Pow(.5, 10);
+
+            kickerValue[6] = Math.Pow(.5, 9);
+
+            kickerValue[7] = Math.Pow(.5, 8);
+
+            kickerValue[8] = Math.Pow(.5, 7);
+
+            kickerValue[9] = Math.Pow(.5, 6);
+
+            kickerValue[10] = Math.Pow(.5, 5);
+
+            kickerValue[11] = Math.Pow(.5, 4);
+
+            kickerValue[12] = Math.Pow(.5, 3);
+
+            kickerValue[13] = Math.Pow(.5, 2);
+
+#if DEBUG
+
+            Console.WriteLine(kickerValue.Sum(x => Convert.ToDouble(x)));
+
+#endif
+
+        }
+
+        public List<SuperCard> set = new List<SuperCard>();
+
+        public List<SuperCard> subset = new List<SuperCard>();
+
+        public double[] kickerValue = new double[14];
+
+        public bool[] orderedset = new bool[15];
+
+        public string Name;
+
+        public bool Playing { get; set; }
+
+        public bool Won { get; set; }
+
+        public SuperCard card1 { get; set; }
+
+        public SuperCard card2 { get; set; }
+
+        public int Bet { get; set; }
+
+        public int Stash { get; set; }
+
+        public int position { get; set; }
+
+        public int preflopbet { get; set; }
+
+        public int flopbet { get; set; }
+
+        public int turnbet { get; set; }
+
+        public int riverbet { get; set; }
+
+        public double rank { get; set; }                            // the hand value
+
+        public double kickerNum { get; set; }
+
+        public double secondaryKickerNum { get; set; }
+
+        public double rankTotal { get; set; }
+
+        #region Cards
+
+        #region Private_Fields
+
+        private uint _Spade;
+
+        private uint _Heart;
+
+        private uint _Club;
+
+        private uint _Diamond;
+
+        private uint _Pairs;
+
+        private uint _Trips;
+
+        private uint _Quads;
+
+        private uint _two;
+
+        private uint _three;
+
+        private uint _four;
+
+        private uint _five;
+
+        private uint _six;
+
+        private uint _seven;
+
+        private uint _eight;
+
+        private uint _nine;
+
+        private uint _ten;
+
+        private uint _jack;
+
+        private uint _queen;
+
+        private uint _king;
+
+        private uint _ace;
+
+        private bool _has2Two;
+
+        private bool _has2Three;
+
+        private bool _has2Four;
+
+        private bool _has2Five;
+
+        private bool _has2Six;
+
+        private bool _has2Seven;
+
+        private bool _has2Eight;
+
+        private bool _has2Nine;
+
+        private bool _has2Ten;
+
+        private bool _has2Jack;
+
+        private bool _has2Queen;
+
+        private bool _has2King;
+
+        private bool _has2Ace;
+
+        private bool _has3Two;
+
+        private bool _has3Three;
+
+        private bool _has3Four;
+
+        private bool _has3Five;
+
+        private bool _has3Six;
+
+        private bool _has3Seven;
+
+        private bool _has3Eight;
+
+        private bool _has3Nine;
+
+        private bool _has3Ten;
+
+        private bool _has3Jack;
+
+        private bool _has3Queen;
+
+        private bool _has3King;
+
+        private bool _has3Ace;
+
+        private bool _has4Two;
+
+        private bool _has4Three;
+
+        private bool _has4Four;
+
+        private bool _has4Five;
+
+        private bool _has4Six;
+
+        private bool _has4Seven;
+
+        private bool _has4Eight;
+
+        private bool _has4Nine;
+
+        private bool _has4Ten;
+
+        private bool _has4Jack;
+
+        private bool _has4Queen;
+
+        private bool _has4King;
+
+        private bool _has4Ace;
+
+        private bool _hasPair;
+
+        private bool _hasTwoPair;
+
+        private bool _hasTrips;
+
+        private bool _hasStraight;
+
+        private bool _hasFlush;
+
+        private bool _hasFullHouse;
+
+        private bool _hasQuads;
+
+        private bool _hasStraightFlush;
+
+        private double _rank;
+
+        private double _kickerNum;
+
+        private double _secondaryKickerNum;
+
+        private double _rankTotal;
+
+        #endregion
+
+        #region Suits
+
+        public uint Spade
+
+        {
+
+            get { return _Spade; }
+
+            set
+
+            {
+
+                _Spade = value;
+
+                if (_Spade >= 5)
+
+                {
+
+                    hasFlush = true;
+
+                    FlushSuit = suit.Spade;
+
+                }
+
+            }
+
+        }
+
+        public uint Heart
+
+        {
+
+            get { return _Heart; }
+
+            set
+
+            {
+
+                _Heart = value;
+
+                if (_Heart >= 5)
+
+                {
+
+                    hasFlush = true;
+
+                    FlushSuit = suit.Heart;
+
+                }
+
+            }
+
+        }
+
+        public uint Club
+
+        {
+
+            get { return _Club; }
+
+            set
+
+            {
+
+                _Club = value;
+
+                if (_Club >= 5)
+
+                {
+
+                    hasFlush = true;
+
+                    FlushSuit = suit.Club;
+
+                }
+
+            }
+
+        }
+
+        public uint Diamond
+
+        {
+
+            get { return _Diamond; }
+
+            set
+
+            {
+
+                _Diamond = value;
+
+                if (_Diamond >= 5)
+
+                {
+
+                    hasFlush = true;
+
+                    FlushSuit = suit.Diamond;
+
+                }
+
+            }
+
+        }
+
+        #endregion
+
+        #region Numbers_And_Faces
+
+        public uint two
+
+        {
+
+            get { return _two; }
+
+            set
+
+            {
+
+                _two = value;
+
+                if (_two >= 1)
+
+                {
+
+                    orderedset[2] = true;
+
+                }
+
+                else if (_two == 0)
+
+                {
+
+                    orderedset[2] = false;
+
+                }
+
+                if (_two == 2)
+
+                {
+
+                    has2Two = true;
+
+                }
+
+                if (_two == 3)
+
+                {
+
+                    has2Two = false;
+
+                    has3Two = true;
+
+                }
+
+                if (_two == 4)
+
+                {
+
+                    has3Two = false;
+
+                    has4Two = true;
+
+                }
+
+            }
+
+        }
+
+        public uint three
+
+        {
+
+            get { return _three; }
+
+            set
+
+            {
+
+                _three = value;
+
+                if (_three >= 1)
+
+                {
+
+                    orderedset[3] = true;
+
+                }
+
+                else if (_three == 0)
+
+                {
+
+                    orderedset[3] = false;
+
+                }
+
+                if (_three == 2)
+
+                {
+
+                    has2Three = true;
+
+                }
+
+                if (_three == 3)
+
+                {
+
+                    has2Three = false;
+
+                    has3Three = true;
+
+                }
+
+                if (_three == 4)
+
+                {
+
+                    has3Three = false;
+
+                    has4Three = true;
+
+                }
+
+            }
+
+        }
+
+        public uint four
+
+        {
+
+            get { return _four; }
+
+            set
+
+            {
+
+                _four = value;
+
+                if (_four >= 1)
+
+                {
+
+                    orderedset[4] = true;
+
+                }
+
+                else if (_three == 0)
+
+                {
+
+                    orderedset[4] = false;
+
+                }
+
+                if (_four == 2)
+
+                {
+
+                    has2Four = true;
+
+                }
+
+                if (_four == 3)
+
+                {
+
+                    has2Four = false;
+
+                    has3Four = true;
+
+                }
+
+                if (_four == 4)
+
+                {
+
+                    has3Four = false;
+
+                    has4Four = true;
+
+                }
+
+            }
+
+        }
+
+        public uint five
+
+        {
+
+            get { return _five; }
+
+            set
+
+            {
+
+                _five = value;
+
+                if (_five >= 1)
+
+                {
+
+                    orderedset[5] = true;
+
+                }
+
+                else if (_five == 0)
+
+                {
+
+                    orderedset[5] = false;
+
+                }
+
+                if (_five == 2)
+
+                {
+
+                    has2Five = true;
+
+                }
+
+                if (_five == 3)
+
+                {
+
+                    has2Five = false;
+
+                    has3Five = true;
+
+                }
+
+                if (_five == 4)
+
+                {
+
+                    has3Five = false;
+
+                    has4Five = true;
+
+                }
+
+            }
+
+        }
+
+        public uint six
+
+        {
+
+            get { return _six; }
+
+            set
+
+            {
+
+                _six = value;
+
+                if (_six >= 1)
+
+                {
+
+                    orderedset[6] = true;
+
+                }
+
+                else if (_six == 0)
+
+                {
+
+                    orderedset[6] = false;
+
+                }
+
+                if (_six == 2)
+
+                {
+
+                    has2Six = true;
+
+                }
+
+                if (_six == 3)
+
+                {
+
+                    has2Six = false;
+
+                    has3Six = true;
+
+                }
+
+                if (_six == 4)
+
+                {
+
+                    has3Six = false;
+
+                    has4Six = true;
+
+                }
+
+            }
+
+        }
+
+        public uint seven
+
+        {
+
+            get { return _seven; }
+
+            set
+
+            {
+
+                _seven = value;
+
+                if (_seven >= 1)
+
+                {
+
+                    orderedset[7] = true;
+
+                }
+
+                else if (_seven == 0)
+
+                {
+
+                    orderedset[7] = false;
+
+                }
+
+                if (_seven == 2)
+
+                {
+
+                    has2Seven = true;
+
+                }
+
+                if (_seven == 3)
+
+                {
+
+                    has2Seven = false;
+
+                    has3Seven = true;
+
+                }
+
+                if (_seven == 4)
+
+                {
+
+                    has3Seven = false;
+
+                    has4Seven = true;
+
+                }
+
+            }
+
+        }
+
+        public uint eight
+
+        {
+
+            get { return _eight; }
+
+            set
+
+            {
+
+                _eight = value;
+
+                if (_eight >= 1)
+
+                {
+
+                    orderedset[8] = true;
+
+                }
+
+                else if (_eight == 0)
+
+                {
+
+                    orderedset[8] = false;
+
+                }
+
+                if (_eight == 2)
+
+                {
+
+                    has2Eight = true;
+
+                }
+
+                if (_eight == 3)
+
+                {
+
+                    has2Eight = false;
+
+                    has3Eight = true;
+
+                }
+
+                if (_eight == 4)
+
+                {
+
+                    has3Eight = false;
+
+                    has4Eight = true;
+
+                }
+
+            }
+
+        }
+
+        public uint nine
+
+        {
+
+            get { return _nine; }
+
+            set
+
+            {
+
+                _nine = value;
+
+                if (_nine >= 1)
+
+                {
+
+                    orderedset[9] = true;
+
+                }
+
+                else if (_nine == 0)
+
+                {
+
+                    orderedset[9] = false;
+
+                }
+
+                if (_nine == 2)
+
+                {
+
+                    has2Nine = true;
+
+                }
+
+                if (_nine == 3)
+
+                {
+
+                    has2Nine = false;
+
+                    has3Nine = true;
+
+                }
+
+                if (_nine == 4)
+
+                {
+
+                    has3Nine = false;
+
+                    has4Nine = true;
+
+                }
+
+            }
+
+        }
+
+        public uint ten
+
+        {
+
+            get { return _ten; }
+
+            set
+
+            {
+
+                _ten = value;
+
+                if (_ten >= 1)
+
+                {
+
+                    orderedset[10] = true;
+
+                }
+
+                else if (_ten == 0)
+
+                {
+
+                    orderedset[10] = false;
+
+                }
+
+                if (_ten == 2)
+
+                {
+
+                    has2Ten = true;
+
+                }
+
+                if (_ten == 3)
+
+                {
+
+                    has2Ten = false;
+
+                    has3Ten = true;
+
+                }
+
+                if (_ten == 4)
+
+                {
+
+                    has3Ten = false;
+
+                    has4Ten = true;
+
+                }
+
+            }
+
+        }
+
+        public uint jack
+
+        {
+
+            get { return _jack; }
+
+            set
+
+            {
+
+                _jack = value;
+
+                if (_jack >= 1)
+
+                {
+
+                    orderedset[11] = true;
+
+                }
+
+                else if (_jack == 0)
+
+                {
+
+                    orderedset[11] = false;
+
+                }
+
+                if (_jack == 2)
+
+                {
+
+                    has2Jack = true;
+
+                }
+
+                if (_jack == 3)
+
+                {
+
+                    has2Jack = false;
+
+                    has3Jack = true;
+
+                }
+
+                if (_jack == 4)
+
+                {
+
+                    has3Jack = false;
+
+                    has4Jack = true;
+
+                }
+
+            }
+
+        }
+
+        public uint queen
+
+        {
+
+            get { return _queen; }
+
+            set
+
+            {
+
+                _queen = value;
+
+                if (_queen >= 1)
+
+                {
+
+                    orderedset[12] = true;
+
+                }
+
+                else if (_queen == 0)
+
+                {
+
+                    orderedset[12] = false;
+
+                }
+
+                if (_queen == 2)
+
+                {
+
+                    has2Queen = true;
+
+                }
+
+                if (_queen == 3)
+
+                {
+
+                    has2Queen = false;
+
+                    has3Queen = true;
+
+                }
+
+                if (_queen == 4)
+
+                {
+
+                    has3Queen = false;
+
+                    has4Queen = true;
+
+                }
+
+            }
+
+        }
+
+        public uint king
+
+        {
+
+            get { return _king; }
+
+            set
+
+            {
+
+                _king = value;
+
+                if (_king >= 1)
+
+                {
+
+                    orderedset[13] = true;
+
+                }
+
+                else if (_king == 0)
+
+                {
+
+                    orderedset[13] = false;
+
+                }
+
+                if (_king == 2)
+
+                {
+
+                    has2King = true;
+
+                }
+
+                if (_king == 3)
+
+                {
+
+                    has2King = false;
+
+                    has3King = true;
+
+                }
+
+                if (_king == 4)
+
+                {
+
+                    has3King = false;
+
+                    has4King = true;
+
+                }
+
+            }
+
+        }
+
+        public uint ace
+
+        {
+
+            get { return _ace; }
+
+            set
+
+            {
+
+                _ace = value;
+
+                if (_ace >= 1)
+
+                {
+
+                    orderedset[13] = true;
+
+                    orderedset[1] = true;
+
+                }
+
+                if (_ace == 2)
+
+                {
+
+                    has2King = true;
+
+                }
+
+                if (_ace == 3)
+
+                {
+
+                    has2King = false;
+
+                    has3King = true;
+
+                }
+
+                if (_ace == 4)
+
+                {
+
+                    has3King = false;
+
+                    has4King = true;
+
+                }
+
+            }
+
+        }
+
+        #endregion
+
+        /*
+
+        public void cardSetMethod(int value, ref int _field, ref bool _has2, ref bool _has3, ref bool _has4, int rankNum, bool ace)
+
+        {
+
+            _field = value;
+
+            if (_ace >= 1)
+
+            {
+
+                orderedset[rankNum] = true;
+
+                if (ace)
+
+                {
+
+                    orderedset[1] = true;
+
+                }
+
+            }
+
+            if (_field == 2)
+
+            {
+
+                _has2 = true;
+
+            }
+
+            else if (_field == 3)
+
+            {
+
+                _has2 = false;
+
+                _has3 = true;
+
+            }
+
+            else if (_field == 4)
+
+            {
+
+                _has3 = false;
+
+                _has4 = true;
+
+            }
+
+        }*/
+
+        #region Has_Two_Properties
+
+        public bool has2Two
+
+        {
+
+            get
+
+            {
+
+                return _has2Two;
+
+            }
+
+            set
+
+            {
+
+                has2SetMethod(value, ref _has2Two, 2);
+
+            }
+
+        }
+
+        public bool has2Three
+
+        {
+
+            get
+
+            {
+
+                return _has2Three;
+
+            }
+
+            set
+
+            {
+
+                has2SetMethod(value, ref _has2Three, 3);
+
+            }
+
+        }
+
+        public bool has2Four
+
+        {
+
+            get
+
+            {
+
+                return _has2Four;
+
+            }
+
+            set
+
+            {
+
+                has2SetMethod(value, ref _has2Four, 4);
+
+            }
+
+        }
+
+        public bool has2Five
+
+        {
+
+            get
+
+            {
+
+                return _has2Five;
+
+            }
+
+            set
+
+            {
+
+                has2SetMethod(value, ref _has2Five, 5);
+
+            }
+
+        }
+
+        public bool has2Six
+
+        {
+
+            get
+
+            {
+
+                return _has2Six;
+
+            }
+
+            set
+
+            {
+
+                has2SetMethod(value, ref _has2Six, 6);
+
+            }
+
+        }
+
+        public bool has2Seven
+
+        {
+
+            get
+
+            {
+
+                return _has2Seven;
+
+            }
+
+            set
+
+            {
+
+                has2SetMethod(value, ref _has2Seven, 7);
+
+            }
+
+        }
+
+        public bool has2Eight
+
+        {
+
+            get
+
+            {
+
+                return _has2Eight;
+
+            }
+
+            set
+
+            {
+
+                has2SetMethod(value, ref _has2Eight, 8);
+
+            }
+
+        }
+
+        public bool has2Nine
+
+        {
+
+            get
+
+            {
+
+                return _has2Nine;
+
+            }
+
+            set
+
+            {
+
+                has2SetMethod(value, ref _has2Nine, 9);
+
+            }
+
+        }
+
+        public bool has2Ten
+
+        {
+
+            get
+
+            {
+
+                return _has2Ten;
+
+            }
+
+            set
+
+            {
+
+                has2SetMethod(value, ref _has2Ten, 10);
+
+            }
+
+        }
+
+        public bool has2Jack
+
+        {
+
+            get
+
+            {
+
+                return _has2Jack;
+
+            }
+
+            set
+
+            {
+
+                has2SetMethod(value, ref _has2Jack, 11);
+
+            }
+
+        }
+
+        public bool has2Queen
+
+        {
+
+            get
+
+            {
+
+                return _has2Queen;
+
+            }
+
+            set
+
+            {
+
+                has2SetMethod(value, ref _has2Queen, 12);
+
+            }
+
+        }
+
+        public bool has2King
+
+        {
+
+            get
+
+            {
+
+                return _has2King;
+
+            }
+
+            set
+
+            {
+
+                has2SetMethod(value, ref _has2King, 13);
+
+            }
+
+        }
+
+        public bool has2Ace
+
+        {
+
+            get
+
+            {
+
+                return _has2Ace;
+
+            }
+
+            set
+
+            {
+
+                has2SetMethod(value, ref _has2Ace, 14);
+
+            }
+
+        }
+
+        public void has2SetMethod(bool value, ref bool _field, int rankNum)
+
+        {
+
+            bool old = _field;
+
+            _field = value;
+
+            if (old == false && _field == true)
+
+            {
+
+                if (TopPair < rankNum)
+
+                {
+
+                    LowerPair = TopPair;
+
+                    TopPair = rankNum;
+
+#if DEBUG
+
+                    Console.WriteLine($"TopPair Set for player {Name}");
+
+#endif
+
+                }
+
+                else if (LowerPair < rankNum)
+
+                {
+
+                    LowerPair = rankNum;
+
+                }
+
+                Pairs++;
+
+            }
+
+            else if (old == true && _field == false)
+
+            {
+
+                if (TopPair == rankNum)
+
+                {
+
+                    TopPair = LowerPair;
+
+                    LowerPair = 0;
+
+                }
+
+                if (LowerPair == rankNum)
+
+                {
+
+                    LowerPair = 0;
+
+                }
+
+                if (Pairs != 0)
+
+                {
+
+                    Pairs--;
+
+                }
+
+            }
+
+        }
+
+        #endregion
+
+        #region Has_Three_Properties
+
+        public bool has3Two
+
+        {
+
+            get
+
+            {
+
+                return _has3Two;
+
+            }
+
+            set
+
+            {
+
+                has3SetMethod(value, ref _has3Two, 2);
+
+            }
+
+        }
+
+        public bool has3Three
+
+        {
+
+            get
+
+            {
+
+                return _has3Three;
+
+            }
+
+            set
+
+            {
+
+                has3SetMethod(value, ref _has3Three, 3);
+
+            }
+
+        }
+
+        public bool has3Four
+
+        {
+
+            get
+
+            {
+
+                return _has3Four;
+
+            }
+
+            set
+
+            {
+
+                has3SetMethod(value, ref _has3Four, 4);
+
+            }
+
+        }
+
+        public bool has3Five
+
+        {
+
+            get
+
+            {
+
+                return _has3Five;
+
+            }
+
+            set
+
+            {
+
+                has3SetMethod(value, ref _has3Five, 5);
+
+            }
+
+        }
+
+        public bool has3Six
+
+        {
+
+            get
+
+            {
+
+                return _has3Six;
+
+            }
+
+            set
+
+            {
+
+                has3SetMethod(value, ref _has3Six, 6);
+
+            }
+
+        }
+
+        public bool has3Seven
+
+        {
+
+            get
+
+            {
+
+                return _has3Seven;
+
+            }
+
+            set
+
+            {
+
+                has3SetMethod(value, ref _has3Seven, 7);
+
+            }
+
+        }
+
+        public bool has3Eight
+
+        {
+
+            get
+
+            {
+
+                return _has3Eight;
+
+            }
+
+            set
+
+            {
+
+                has3SetMethod(value, ref _has3Eight, 8);
+
+            }
+
+        }
+
+        public bool has3Nine
+
+        {
+
+            get
+
+            {
+
+                return _has3Nine;
+
+            }
+
+            set
+
+            {
+
+                has3SetMethod(value, ref _has3Nine, 9);
+
+            }
+
+        }
+
+        public bool has3Ten
+
+        {
+
+            get
+
+            {
+
+                return _has3Ten;
+
+            }
+
+            set
+
+            {
+
+                has3SetMethod(value, ref _has3Ten, 10);
+
+            }
+
+        }
+
+        public bool has3Jack
+
+        {
+
+            get
+
+            {
+
+                return _has3Jack;
+
+            }
+
+            set
+
+            {
+
+                has3SetMethod(value, ref _has3Jack, 11);
+
+            }
+
+        }
+
+        public bool has3Queen
+
+        {
+
+            get
+
+            {
+
+                return _has3Queen;
+
+            }
+
+            set
+
+            {
+
+                has3SetMethod(value, ref _has3Queen, 12);
+
+            }
+
+        }
+
+        public bool has3King
+
+        {
+
+            get
+
+            {
+
+                return _has3King;
+
+            }
+
+            set
+
+            {
+
+                has3SetMethod(value, ref _has3King, 13);
+
+            }
+
+        }
+
+        public bool has3Ace
+
+        {
+
+            get
+
+            {
+
+                return _has3Ace;
+
+            }
+
+            set
+
+            {
+
+                has3SetMethod(value, ref _has3Ace, 14);
+
+            }
+
+        }
+
+        public void has3SetMethod(bool value, ref bool _field, int rankNum)
+
+        {
+
+            bool old = _field;
+
+            _field = value;
+
+            if (old == false && _field == true)
+
+            {
+
+                Trips++;
+
+                if (TopTriple < rankNum)
+
+                {
+
+                    LowerTriple = TopTriple;
+
+                    TopTriple = rankNum;
+
+                }
+
+                else if (LowerTriple < rankNum)
+
+                {
+
+                    LowerTriple = rankNum;
+
+                }
+
+            }
+
+            else if (old == true && _field == false)
+
+            {
+
+                if (Trips != 0)
+
+                {
+
+                    Trips--;
+
+                }
+
+                if (TopTriple == rankNum)
+
+                {
+
+                    TopTriple = LowerTriple;
+
+                    LowerTriple = 0;
+
+                }
+
+                if (LowerTriple == rankNum)
+
+                {
+
+                    LowerTriple = 0;
+
+                }
+
+            }
+
+        }
+
+        #endregion
+
+        #region Has_Four_Properties
+
+        public bool has4Two
+
+        {
+
+            get
+
+            {
+
+                return _has4Two;
+
+            }
+
+            set
+
+            {
+
+                has4SetMethod(value, ref _has4Two, 2);
+
+            }
+
+        }
+
+        public bool has4Three
+
+        {
+
+            get
+
+            {
+
+                return _has4Three;
+
+            }
+
+            set
+
+            {
+
+                has4SetMethod(value, ref _has4Three, 3);
+
+            }
+
+        }
+
+        public bool has4Four
+
+        {
+
+            get
+
+            {
+
+                return _has4Four;
+
+            }
+
+            set
+
+            {
+
+                has4SetMethod(value, ref _has4Four, 4);
+
+            }
+
+        }
+
+        public bool has4Five
+
+        {
+
+            get
+
+            {
+
+                return _has4Five;
+
+            }
+
+            set
+
+            {
+
+                has4SetMethod(value, ref _has4Five, 5);
+
+            }
+
+        }
+
+        public bool has4Six
+
+        {
+
+            get
+
+            {
+
+                return _has4Six;
+
+            }
+
+            set
+
+            {
+
+                has4SetMethod(value, ref _has4Six, 6);
+
+            }
+
+        }
+
+        public bool has4Seven
+
+        {
+
+            get
+
+            {
+
+                return _has4Seven;
+
+            }
+
+            set
+
+            {
+
+                has4SetMethod(value, ref _has4Seven, 7);
+
+            }
+
+        }
+
+        public bool has4Eight
+
+        {
+
+            get
+
+            {
+
+                return _has4Eight;
+
+            }
+
+            set
+
+            {
+
+                has4SetMethod(value, ref _has4Eight, 8);
+
+            }
+
+        }
+
+        public bool has4Nine
+
+        {
+
+            get
+
+            {
+
+                return _has4Nine;
+
+            }
+
+            set
+
+            {
+
+                has4SetMethod(value, ref _has4Nine, 9);
+
+            }
+
+        }
+
+        public bool has4Ten
+
+        {
+
+            get
+
+            {
+
+                return _has4Ten;
+
+            }
+
+            set
+
+            {
+
+                has4SetMethod(value, ref _has4Ten, 10);
+
+            }
+
+        }
+
+        public bool has4Jack
+
+        {
+
+            get
+
+            {
+
+                return _has4Jack;
+
+            }
+
+            set
+
+            {
+
+                has4SetMethod(value, ref _has4Jack, 11);
+
+            }
+
+        }
+
+        public bool has4Queen
+
+        {
+
+            get
+
+            {
+
+                return _has4Queen;
+
+            }
+
+            set
+
+            {
+
+                has4SetMethod(value, ref _has4Queen, 12);
+
+            }
+
+        }
+
+        public bool has4King
+
+        {
+
+            get
+
+            {
+
+                return _has4King;
+
+            }
+
+            set
+
+            {
+
+                has4SetMethod(value, ref _has4King, 13);
+
+            }
+
+        }
+
+        public bool has4Ace
+
+        {
+
+            get
+
+            {
+
+                return _has4Ace;
+
+            }
+
+            set
+
+            {
+
+                has4SetMethod(value, ref _has4Ace, 14);
+
+            }
+
+        }
+
+        public void has4SetMethod(bool value, ref bool _field, int rankNum)
+
+        {
+
+            bool old = _field;
+
+            _field = value;
+
+            if (old == false && _field == true)
+
+            {
+
+                Quads++;
+
+                TopQuad = rankNum;
+
+            }
+
+        }
+
+        #endregion
+
+        #region Has_Combos
+
+        public uint Pairs
+
+        {
+
+            get { return _Pairs; }
+
+            set
+
+            {
+
+                _Pairs = value;
+
+#if DEBUG
+
+                Console.WriteLine($"Pairs property has been changed for {Name} and is now {_Pairs}");
+
+#endif
+
+                if (_Pairs == 1)
+
+                {
+
+#if DEBUG
+
+                    Console.WriteLine($"Code 1572 Pairs is now 1 for {Name}");
+
+#endif
+
+                    hasPair = true;
+
+                }
+
+                else if (_Pairs >= 2)
+
+                {
+
+#if DEBUG
+
+                    Console.WriteLine($"Code 1579 Pairs is 2 or more for {Name}");
+
+#endif
+
+                    hasTwoPair = true;
+
+                }
+
+            }
+
+        }
+
+        public uint Trips
+
+        {
+
+            get { return _Trips; }
+
+            set
+
+            {
+
+                _Trips = value;
+
+                if (_Trips == 2)
+
+                {
+
+                    hasFullHouse = true;
+
+                    DoubleTriple = true;
+
+                }
+
+                if (_Trips == 1)
+
+                {
+
+                    if (Pairs == 0)
+
+                    {
+
+                        hasTrips = true;
+
+                    }
+
+                    else if (Pairs >= 1)
+
+                    {
+
+                        hasFullHouse = true;
+
+                    }
+
+                }
+
+            }
+
+        }
+
+        public uint Quads
+
+        {
+
+            get { return _Quads; }
+
+            set
+
+            {
+
+                _Quads = value;
+
+                if (_Quads == 1)
+
+                {
+
+                    hasQuads = true;
+
+                }
+
+            }
+
+        }
+
+        public bool hasPair
+
+        {
+
+            get { return _hasPair; }
+
+            set
+
+            {
+
+                if (_hasPair != value)
+
+                {
+
+                    _hasPair = value;
+
+                }
+
+                if (rank <= 1 && value == true)
+
+                {
+
+#if DEBUG
+
+                    Console.WriteLine($"line 1635 changed hasPair with name {Name}");
+
+#endif
+
+                    rank = 1;
+
+                }
+
+            }
+
+        }
+
+        public bool hasTwoPair
+
+        {
+
+            get { return _hasTwoPair; }
+
+            set
+
+            {
+
+                _hasTwoPair = value;
+
+                if (rank <= 2 && value == true)
+
+                {
+
+#if DEBUG
+
+                    Console.WriteLine($"line 1649 has two pair with name {Name}");
+
+#endif
+
+                    rank = 2;
+
+                }
+
+            }
+
+        }
+
+        public bool hasTrips
+
+        {
+
+            get { return _hasTrips; }
+
+            set
+
+            {
+
+                _hasTrips = value;
+
+                if (rank <= 3 && value == true)
+
+                {
+
+                    rank = 3;
+
+                }
+
+            }
+
+        }
+
+        public bool hasStraight
+
+        {
+
+            get { return _hasStraight; }
+
+            set
+
+            {
+
+                _hasStraight = value;
+
+                if (rank < 4 && value == true)
+
+                {
+
+                    rank = 4;
+
+                }
+
+            }
+
+        }
+
+        public bool hasFlush
+
+        {
+
+            get { return _hasFlush; }
+
+            set
+
+            {
+
+                _hasFlush = value;
+
+                if (rank < 5 && value == true)
+
+                {
+
+                    rank = 5;
+
+                }
+
+            }
+
+        }
+
+        public bool hasFullHouse
+
+        {
+
+            get { return _hasFullHouse; }
+
+            set
+
+            {
+
+                _hasFullHouse = value;
+
+                if (rank < 6 && value == true)
+
+                {
+
+                    rank = 6;
+
+                }
+
+            }
+
+        }
+
+        public bool hasQuads
+
+        {
+
+            get { return _hasQuads; }
+
+            set
+
+            {
+
+                _hasQuads = value;
+
+                if (rank < 7 && value == true)
+
+                {
+
+                    rank = 7;
+
+                }
+
+            }
+
+        }
+
+        public bool hasStraightFlush
+
+        {
+
+            get { return _hasStraightFlush; }
+
+            set
+
+            {
+
+                _hasStraightFlush = value;
+
+                if (rank < 8 && value == true)
+
+                {
+
+                    rank = 8;
+
+                }
+
+            }
+
+        }
+
+        #endregion
+
+        // Top Card             0
+
+        // Pair                 1
+
+        // Two Pair             2
+
+        // Three of a kind      3
+
+        // Straight             4
+
+        // Flush                5   
+
+        // Full House           6
+
+        // Quads                7
+
+        // Straight Flush       8
+
+        // Royal Flush          9
+
+        #region Top_Set
+
+        private int _TopPair;
+
+        private int _LowerPair;
+
+        private int _TopTriple;
+
+        private int _LowerTriple;
+
+        private int _TopQuad;
+
+        private int _TopFlush;
+
+        public int TopPair
+
+        {
+
+            get { return _TopPair; }
+
+            set
+
+            {
+
+                changeTopSetProperty(value, ref _TopPair);
+
+            }
+
+        }        // what the higher pair is
+
+        public int LowerPair
+
+        {
+
+            get { return _LowerPair; }
+
+            set
+
+            {
+
+                changeTopSetProperty(value, ref _LowerPair);
+
+            }
+
+        }      // what the lower pair is if there is a 2 pair
+
+        public int TopTriple
+
+        {
+
+            get { return _TopTriple; }
+
+            set
+
+            {
+
+                changeTopSetProperty(value, ref _TopTriple);
+
+            }
+
+        }      // what the triple is, in case there are two full houses
+
+        public int LowerTriple
+
+        {
+
+            get { return _LowerTriple; }
+
+            set
+
+            {
+
+                changeTopSetProperty(value,ref _LowerTriple);
+
+            }
+
+        }    // Lower triple, in case there is a full house
+
+        public int TopQuad
+
+        {
+
+            get { return _TopQuad; }
+
+            set
+
+            {
+
+                changeTopSetProperty(value, ref _TopQuad);
+
+            }
+
+        }        // in case people tie for quads
+
+        public int TopFlush
+
+        {
+
+            get { return _TopFlush; }
+
+            set
+
+            {
+
+                changeTopSetProperty(value, ref _TopFlush);
+
+            }
+
+        }       // high card of the flush, while there are many for coamparison, single for simplicity
+
+        public void changeTopSetProperty(int value, ref int _field)
+
+        {
+
+            if (value == 1)
+
+            {
+
+                value = 14;
+
+            }
+
+            _field = value;
+
+        }
+
+        //TopSets all correspond to a number, though this number is changed to 14 if it was an ace that came with a 1
+
+        public suit? FlushSuit { get; set; }             // what kind of flush you have
+
+        public bool DoubleTriple { get; set; }           // in finding out if you have a full house by having two triples or a triple double
+
+        public int TopStraight { get; set; }
+
+        #endregion
+
+        #endregion
+
+        #region Check_Combos_or_Bet_or_End
+
+        public void straightCheck()
+
+        {
+
+            straightCheckDetails(orderedset, false);
+
+        }
+
+        public void straightCheckDetails(bool[] obj, bool StraightFlush)
+
+        {
+
+            bool found = false;
+
+            int start = 14;
+
+            int count = 0;
+
+            bool keepGoing = false;
+
+            if (obj[1] == true)
+
+            {
+
+                keepGoing = true;
+
+                count++;
+
+                start = 14;
+
+            }
+
+            for (int i = 13; i > 0; i--)
+
+            {
+
+                if (keepGoing == false)
+
+                {
+
+                    start = i;
+
+                    if (obj[i] == true)
+
+                    {
+
+                        count++;
+
+                        keepGoing = true;
+
+                    }
+
+                    else if (obj[i] == false)
+
+                    {
+
+                        count = 0;
+
+                        keepGoing = false;
+
+                    }
+
+                }
+
+                else if (keepGoing == true)
+
+                {
+
+                    if (obj[i] == true)
+
+                    {
+
+                        count++;
+
+                        if (count == 5)
+
+                        {
+
+                            found = true;
+
+                            TopStraight = start;
+
+                            hasStraight = true;
+
+                            break;
+
+                        }
+
+                    }
+
+                    if (obj[i] == false)
+
+                    {
+
+                        count = 0;
+
+                        keepGoing = false;
+
+                    }
+
+                }
+
+            }
+
+            hasStraight = found;
+
+            // finished method, only need what high
+
+            if (found && StraightFlush)
+
+            {
+
+                hasStraightFlush = true;
+
+                rank = 8;
+
+                if (Room.mode == 1)
+
+                {
+
+                    Room.mode = 0;
+
+                }
+
+                if (TopFlush == 14 && TopStraight == 14)
+
+                {
+
+                    if (Room.mode == 2)
+
+                    {
+
+                        Room.mode = 0;
+
+                    }
+
+                    rank = 9;
+
+                }
+
+            }
+
+        }
+
+        public void pairCheck()
+
+        {
+
+            if (LowerPair > TopPair)
+
+            {
+
+                int temp = TopPair;
+
+                TopPair = LowerPair;
+
+                LowerPair = temp;
+
+            }
+
+            if (LowerTriple > TopTriple)
+
+            {
+
+                int temp = TopTriple;
+
+                TopTriple = LowerTriple;
+
+                LowerTriple = temp;
+
+            }
+
+        }
+
+        public void flushCheck()
+
+        {
+
+            flushCheckDetails(false);
+
+        }
+
+        public void flushCheckDetails(bool DoStraightFlush)
+
+        {
+
+            if (hasFlush == true)
+
+            {
+
+                var suitedCards = from cards in set
+
+                                  where cards.card.suit.Equals(FlushSuit)
+
+                                  orderby (int)cards.card.number descending
+
+                                  select cards;
+
+                foreach (SuperCard card in suitedCards)
+
+                {
+
+#if DEBUG
+
+                    Console.WriteLine($"Code 2014 Flush check for royal flush! {Name} has {card.card.number} {card.card.suit}");
+
+#endif
+
+                    if ((int)card.card.number == 1)
+
+                    {
+
+#if DEBUG
+
+                        Console.WriteLine($"Code 2019 we found an Ace high ");
+
+#endif
+
+                        TopFlush = 14;
+
+                    }
+
+                }
+
+                foreach (SuperCard card in suitedCards)
+
+                {
+
+                    if (!subset.Contains(card))
+
+                    {
+
+                        subset.Add(card);
+
+                    }
+
+                }
+
+                if (TopFlush != 14)
+
+                {
+
+                    foreach (SuperCard card in suitedCards)
+
+                    {
+
+                        TopFlush = (int)card.card.number;
+
+                        break;
+
+                    }
+
+                }
+
+                if (DoStraightFlush)
+
+                {
+
+                    bool[] finalCheck = new bool[15];
+
+                    foreach (SuperCard card in suitedCards)
+
+                    {
+
+                        if (TopFlush == 14)
+
+                        {
+
+                            finalCheck[14] = true;
+
+                        }
+
+#if DEBUG
+
+                        Console.WriteLine($"{Name} has {(int)card.card.number} in the suit {card.card.suit}");
+
+#endif
+
+                        finalCheck[(int)card.card.number] = true;
+
+                    }
+
+                    straightCheckDetails(finalCheck, true);
+
+                }
+
+            }
+
+        }
+
+        public void straightFlushCheck()
+
+        {
+
+            if (hasStraight && hasFlush == true)
+
+            {
+
+                flushCheckDetails(true);
+
+            }
+
+        }
+
+        public int BetMethod() { return 50; }
+
+        public void AddPrivateCard(Card card)
+
+        {
+
+            this.set.Add(new SuperCard(card, false));
+
+            updateHand(card);
+
+        }
+
+        public void AddPublicCard(Card card)
+
+        {
+
+            this.set.Add(new SuperCard(card, true));
+
+            updateHand(card);
+
+            straightCheck();
+
+            pairCheck();
+
+            flushCheck();
+
+            straightFlushCheck();
+
+            getRank();
+
+        }
+
+        public void updateHand(Card card)
+
+        {
+
+#region
+
+            switch (card.suit)
+
+            {
+
+                case suit.Spade:
+
+                    Spade++;
+
+                    break;
+
+                case suit.Heart:
+
+                    Heart++;
+
+                    break;
+
+                case suit.Club:
+
+                    Club++;
+
+                    break;
+
+                case suit.Diamond:
+
+                    Diamond++;
+
+                    break;
+
+            }
+
+            switch (card.number)
+
+            {
+
+                case number.Two:
+
+                    two++;
+
+                    break;
+
+                case number.Three:
+
+                    three++;
+
+                    break;
+
+                case number.Four:
+
+                    four++;
+
+                    break;
+
+                case number.Five:
+
+                    five++;
+
+                    break;
+
+                case number.Six:
+
+                    six++;
+
+                    break;
+
+                case number.Seven:
+
+                    seven++;
+
+                    break;
+
+                case number.Eight:
+
+                    eight++;
+
+                    break;
+
+                case number.Nine:
+
+                    nine++;
+
+                    break;
+
+                case number.Ten:
+
+                    ten++;
+
+                    break;
+
+                case number.Jack:
+
+                    jack++;
+
+                    break;
+
+                case number.Queen:
+
+                    queen++;
+
+                    break;
+
+                case number.King:
+
+                    king++;
+
+                    break;
+
+                case number.Ace:
+
+                    ace++;
+
+                    break;
+
+            }
+
+#endregion
+
+        }
+
+        // comes last to break ties, a lot of complex shit
+
+        public void getKicker()
+
+        {
+
+            // Top Card             0
+
+            // Pair                 1
+
+            // Two Pair             2
+
+            // Three of a kind      3
+
+            // Straight             4
+
+            // Flush                5   
+
+            // Full House           6
+
+            // Quads                7
+
+            // Straight Flush       8
+
+            // Royal Flush          9
+
+            bool hasAce = false;
+
+            double TotalKickerNumber = 0;
+
+            if (rank == 7)          // Quads
+
+            {
+
+                var cardsLeft = from card in set
+
+                                where !(card.card.number.Equals((number)(TopQuad)))
+
+                                orderby (int)card.card.number descending
+
+                                select card;
+
+                foreach (SuperCard card in cardsLeft)
+
+                {
+
+                    if ((int)card.card.number == 1)         // if you have an ace, register the kicker value from 1 to 14 then break
+
+                    {
+
+                        TotalKickerNumber = 14;
+
+                        has2Ace = true;
+
+                        rankTotal += TotalKickerNumber / 15.0 ;
+
+                        break;
+
+                    }
+
+                }
+
+                if (hasAce == false)                        // if you dont have an ace, use the largest value as the single kicker then break
+
+                {
+
+                    foreach (SuperCard card in cardsLeft)
+
+                    {
+
+                        TotalKickerNumber = (int)card.card.number;
+
+                        rankTotal += TotalKickerNumber / 15.0;
+
+                        break;
+
+                    }
+
+                }
+
+            }
+
+            else if (rank == 5 || rank == 8)     // Flush
+
+            {
+
+                var cardsLeftSuited = from card in set                              // get all the cards of that suit in descending order
+
+                                      where card.card.suit.Equals(FlushSuit)
+
+                                      orderby (int)card.card.number descending
+
+                                      select card;
+
+                int count = 0;                                                      // we need 5 cards total
+
+                foreach (SuperCard card in cardsLeftSuited)                         // do we have an ace
+
+                {
+
+                    int numberOnCard = (int)card.card.number;
+
+                    if (numberOnCard == 1)
+
+                    {
+
+                        hasAce = true;
+
+                        break;
+
+                    }
+
+                }
+
+                if (hasAce)                                                         // if we have an ace we add that kicker value than add 1 to count
+
+                {
+
+                    TotalKickerNumber += kickerValue[1];
+
+                    count++;
+
+                }
+
+                foreach (SuperCard card in cardsLeftSuited)                         // get all the other cards
+
+                {
+
+                    int index = (int)card.card.number;
+
+                    TotalKickerNumber += kickerValue[index];
+
+                    count++;
+
+                    if (count == 5)                                                 // we stop counting after we added 5 cards                                   
+
+                    {
+
+                        break;
+
+                    }
+
+                }
+
+                rankTotal = rank + TotalKickerNumber;
+
+            }
+
+            else
+
+            {
+
+                int count = 0;
+
+                int target = 5;
+
+                var cardsLeft = from card in set
+
+                                where !(card.card.number.Equals((number)(TopPair))) || !(card.card.number.Equals((number)(LowerPair)))
+
+                                 || !(card.card.number.Equals((number)(TopTriple))) || !(card.card.number.Equals((number)(LowerTriple)))
+
+                                orderby (int)card.card.number descending
+
+                                select card;                                   // get rid of all doubles and triples
+
+                if (rank == 1) { target = 5 - 2; }                              // if we have a pair, we are looking at 3 cards
+
+                else if (rank == 2) { target = 5 - 4; }                         // if we have two pair, we are looking at 1 card
+
+                else if (rank == 3) { target = 5 - 3; }                         // if we have a triple, we are looking at 2 cards
+
+                else if (rank == 0) { target = 5 - 0; }                         // if we have a high card, we are looking at all 5 cards
+
+                foreach (SuperCard card in cardsLeft)                           // do we have an ace
+
+                {
+
+                    int numberOnCard = (int)card.card.number;
+
+                    if (numberOnCard == 1)
+
+                    {
+
+                        hasAce = true;
+
+                        break;
+
+                    }
+
+                }
+
+                if (hasAce)                                                     // if we have an ace we add that kicker value then add 1 to count
+
+                {
+
+                    TotalKickerNumber += kickerValue[1];
+
+                    count++;
+
+                }
+
+                foreach (SuperCard card in cardsLeft)
+
+                {
+
+                    if (count == target)
+
+                    {
+
+                        break;
+
+                    }
+
+                    int index = (int)card.card.number;
+
+                    TotalKickerNumber += kickerValue[index];
+
+                }
+
+                secondaryKickerNum = TotalKickerNumber / 1000.0;
+
+            }
+
+            // kickers are made up of three numbers:
+
+            // the first number is the main combo. if you have a full house, this would be the value of the triple. this has a value of
+
+            // 1/15, multiplied by the number of the card
+
+            //
+
+            // the second number is the secondary combo. if you have a two pair or a full house, it is the value of the lower pair. this
+
+            // has a value of 1/15/15, multiplied by the number of the card
+
+            //
+
+            // the secondaryKickerNum is the value of all the remaining cards, which are 1/2 to the power of the weakness of the card. this
+
+            // number is divided by 1000, which is smaller than the smallest of the first two kicker values
+
+        }
+
+        public void getRank()
+
+        {
+
+            if (rank == 9)
+
+            {
+
+                rankTotal = 9.0;
+
+            }
+
+            else
+
+            {
+
+                getKicker();
+
+                double extra = 0.0000;
+
+                if (rank == 4 || rank == 8)
+
+                {
+
+                    extra = (double)(1.0 / 15.0) * TopStraight;
+
+                }
+
+                else
+
+                {
+
+                    if (TopTriple != 0)
+
+                    {
+
+                        extra += (double)(1.0 / 15.0) * TopTriple;
+
+                    }
+
+                    else if (TopPair != 0)
+
+                    {
+
+                        extra += (double)(1.0 / 15.0) * TopPair;
+
+                    }
+
+                    if (LowerTriple != 0)
+
+                    {
+
+                        extra += (double)(1.0 / 15.0 / 15.0) * LowerTriple;
+
+                    }
+
+                    else if (LowerPair != 0)
+
+                    {
+
+                        extra += (double)(1.0 / 15.0 / 15.0) * LowerPair;
+
+                    }
+
+                }
+
+                if (rank == 4 ) // 8 for straight flush, 4 for straight
+
+                {
+
+                    rankTotal = rank + TopStraight / 15.0;
+
+                }
+
+                
+
+                else if (rank != 7 && rank != 5 && rank != 9 && rank != 5)
+
+                {
+
+                    rankTotal = rank + extra + secondaryKickerNum;
+
+                }
+
+#if DEBUG
+
+                Console.WriteLine($"extra is {extra}");
+
+                Console.WriteLine($"rank is now {rank}");
+
+#endif
+
+            }
+
+        }
+
+        public void newRound()
+
+        {
+
+            set.Clear();
+
+            subset.Clear();
+
+            Won = false;
+
+            has2Two = has2Three = has2Four = has2Five = has2Six = has2Seven = has2Eight = has2Nine = has2Ten = has2Jack = has2Queen = has2King = has2Ace = false;
+
+            has3Two = has3Three = has3Four = has3Five = has3Six = has3Seven = has3Eight = has3Nine = has3Ten = has3Jack = has3Queen = has3King = has3Ace = false;
+
+            has4Two = has4Three = has4Four = has4Four = has4Six = has4Seven = has4Eight = has4Nine = has4Ten = has4Jack = has4Queen = has4King = has4Ace = false;
+
+            hasPair = hasTwoPair = hasTrips = hasStraight = hasFlush = hasFullHouse = hasQuads = hasStraightFlush = DoubleTriple = false;
+
+            rank = TopPair = LowerPair = TopTriple = LowerTriple = TopQuad = TopStraight = TopFlush = 0;
+
+            two = three = four = five = six = seven = eight = nine = ten = jack = queen = king = ace = 0;
+
+            preflopbet = flopbet = turnbet = riverbet = 0;
+
+            Spade = Heart = Club = Diamond = 0;
+
+            Pairs = Trips = Quads = 0;
+
+            secondaryKickerNum = kickerNum = rankTotal = 0;
+
+            FlushSuit = null;
+
+            for (int i = 1; i < orderedset.Length; i++)
+
+            {
+
+                orderedset[i] = false;
+
+            }
+
+#if DEBUG
+
+            Console.WriteLine($"Reset for name {Name}");
+
+#endif
+
+        }
+
+        #endregion
+
+    }
+
+    #region The_Deck
+
+    public class FactoryDeck
+
+    {
+
+        public Dictionary<int, Card> dictionary = new Dictionary<int, Card>();
+
+        #region The_Generic_Deck
+
+        public FactoryDeck()
+
+        {
+
+            dictionary.Add(1, sA);
+
+            dictionary.Add(2, s2);
+
+            dictionary.Add(3, s3);
+
+            dictionary.Add(4, s4);
+
+            dictionary.Add(5, s5);
+
+            dictionary.Add(6, s6);
+
+            dictionary.Add(7, s7);
+
+            dictionary.Add(8, s8);
+
+            dictionary.Add(9, s9);
+
+            dictionary.Add(10, s10);
+
+            dictionary.Add(11, sJ);
+
+            dictionary.Add(12, sQ);
+
+            dictionary.Add(13, sK);
+
+            dictionary.Add(14, hA);
+
+            dictionary.Add(15, h2);
+
+            dictionary.Add(16, h3);
+
+            dictionary.Add(17, h4);
+
+            dictionary.Add(18, h5);
+
+            dictionary.Add(19, h6);
+
+            dictionary.Add(20, h7);
+
+            dictionary.Add(21, h8);
+
+            dictionary.Add(22, h9);
+
+            dictionary.Add(23, h10);
+
+            dictionary.Add(24, hJ);
+
+            dictionary.Add(25, hQ);
+
+            dictionary.Add(26, hK);
+
+            dictionary.Add(27, cA);
+
+            dictionary.Add(28, c2);
+
+            dictionary.Add(29, c3);
+
+            dictionary.Add(30, c4);
+
+            dictionary.Add(31, c5);
+
+            dictionary.Add(32, c6);
+
+            dictionary.Add(33, c7);
+
+            dictionary.Add(34, c8);
+
+            dictionary.Add(35, c9);
+
+            dictionary.Add(36, c10);
+
+            dictionary.Add(37, cJ);
+
+            dictionary.Add(38, cQ);
+
+            dictionary.Add(39, cK);
+
+            dictionary.Add(40, dA);
+
+            dictionary.Add(41, d2);
+
+            dictionary.Add(42, d3);
+
+            dictionary.Add(43, d4);
+
+            dictionary.Add(44, d5);
+
+            dictionary.Add(45, d6);
+
+            dictionary.Add(46, d7);
+
+            dictionary.Add(47, d8);
+
+            dictionary.Add(48, d9);
+
+            dictionary.Add(49, d10);
+
+            dictionary.Add(50, dJ);
+
+            dictionary.Add(51, dQ);
+
+            dictionary.Add(0, dK);
+
+        }
+
+        Card sA = new Card(suit.Spade, number.Ace, true);      // 1
+
+        Card s2 = new Card(suit.Spade, number.Two, false);      // 2
+
+        Card s3 = new Card(suit.Spade, number.Three, false);      // 3
+
+        Card s4 = new Card(suit.Spade, number.Four, false);      // 4
+
+        Card s5 = new Card(suit.Spade, number.Five, false);      // 5
+
+        Card s6 = new Card(suit.Spade, number.Six, false);      // 6
+
+        Card s7 = new Card(suit.Spade, number.Seven, false);      // 7
+
+        Card s8 = new Card(suit.Spade, number.Eight, false);      // 8
+
+        Card s9 = new Card(suit.Spade, number.Nine, false);      // 9
+
+        Card s10 = new Card(suit.Spade, number.Ten, false);      // 10
+
+        Card sJ = new Card(suit.Spade, number.Jack, true);      // 11
+
+        Card sQ = new Card(suit.Spade, number.Queen, true);      // 12
+
+        Card sK = new Card(suit.Spade, number.King, true);      // 13
+
+        Card hA = new Card(suit.Heart, number.Ace, true);      // 14
+
+        Card h2 = new Card(suit.Heart, number.Two, false);      // 15
+
+        Card h3 = new Card(suit.Heart, number.Three, false);      // 16
+
+        Card h4 = new Card(suit.Heart, number.Four, false);      // 17
+
+        Card h5 = new Card(suit.Heart, number.Five, false);      // 18
+
+        Card h6 = new Card(suit.Heart, number.Six, false);      // 19
+
+        Card h7 = new Card(suit.Heart, number.Seven, false);      // 20
+
+        Card h8 = new Card(suit.Heart, number.Eight, false);      // 21
+
+        Card h9 = new Card(suit.Heart, number.Nine, false);      // 22
+
+        Card h10 = new Card(suit.Heart, number.Ten, false);      // 23
+
+        Card hJ = new Card(suit.Heart, number.Jack, true);      // 24
+
+        Card hQ = new Card(suit.Heart, number.Queen, true);      // 25
+
+        Card hK = new Card(suit.Heart, number.King, true);      // 26
+
+        Card cA = new Card(suit.Club, number.Ace, true);      // 27
+
+        Card c2 = new Card(suit.Club, number.Two, false);      // 28
+
+        Card c3 = new Card(suit.Club, number.Three, false);      // 29
+
+        Card c4 = new Card(suit.Club, number.Four, false);      // 30
+
+        Card c5 = new Card(suit.Club, number.Five, false);      // 31
+
+        Card c6 = new Card(suit.Club, number.Six, false);      // 32
+
+        Card c7 = new Card(suit.Club, number.Seven, false);      // 33
+
+        Card c8 = new Card(suit.Club, number.Eight, false);      // 34
+
+        Card c9 = new Card(suit.Club, number.Nine, false);      // 35
+
+        Card c10 = new Card(suit.Club, number.Ten, false);      // 36
+
+        Card cJ = new Card(suit.Club, number.Jack, true);      // 37
+
+        Card cQ = new Card(suit.Club, number.Queen, true);      // 38
+
+        Card cK = new Card(suit.Club, number.King, true);      // 39
+
+        Card dA = new Card(suit.Diamond, number.Ace, true);      // 40
+
+        Card d2 = new Card(suit.Diamond, number.Two, false);      // 41
+
+        Card d3 = new Card(suit.Diamond, number.Three, false);      // 42
+
+        Card d4 = new Card(suit.Diamond, number.Four, false);      // 43
+
+        Card d5 = new Card(suit.Diamond, number.Five, false);      // 44
+
+        Card d6 = new Card(suit.Diamond, number.Six, false);      // 45
+
+        Card d7 = new Card(suit.Diamond, number.Seven, false);      // 46
+
+        Card d8 = new Card(suit.Diamond, number.Eight, false);      // 47
+
+        Card d9 = new Card(suit.Diamond, number.Nine, false);      // 48
+
+        Card d10 = new Card(suit.Diamond, number.Ten, false);      // 49
+
+        Card dJ = new Card(suit.Diamond, number.Jack, true);      // 50
+
+        Card dQ = new Card(suit.Diamond, number.Queen, true);      // 51
+
+        Card dK = new Card(suit.Diamond, number.King, true);      // 52
+
+#endregion
+
+    }
+
+    public class Card
+
+    {
+
+        public suit suit;
+
+        public bool face { get; set; }
+
+        public number number;
+
+        public Card(suit insuit, number num, bool face)
+
+        {
+
+            suit = insuit;
+
+            number = num;
+
+            this.face = face;
+
+        }
+
+        public Card() { }
+
+    }
+
+    public class SuperCard
+
+    {
+
+        public Card card;
+
+        public bool shared;
+
+        public SuperCard(Card c, bool s)
+
+        {
+
+            card = c;
+
+            shared = s;
+
+        }
+
+    }
+
+    public enum number
+
+    {
+
+        Ace = 1, Two = 2, Three = 3, Four = 4, Five = 5, Six = 6, Seven = 7, Eight = 8, Nine = 9, Ten = 10, Jack = 11, Queen = 12, King = 13,
+
+        Ace_ = 14
+
+    }
+
+    public enum suit
+
+    {
+
+        Heart,
+
+        Spade,
+
+        Diamond,
+
+        Club
+
+    }
+
+    public enum combo
+
+    {
+
+        Top_Card = 0,
+
+        Pair = 1,
+
+        Two_Pair = 2,
+
+        Three_of_a_kind = 3,
+
+        Straight = 4,
+
+        Flush = 5,
+
+        Full_House = 6,
+
+        Quads = 7,
+
+        Straight_Flush = 8,
+
+        Royal_Flush = 9,
+
+    }
+
+    #endregion
+
+}
+

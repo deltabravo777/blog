@@ -1,0 +1,810 @@
+Classic Snake
+C# Code
+
+Visual Studio 2019, .NET 5.0
+
+15 July 2021 Edits: Money token added, if collected the snake would shrink in size and increase speed for 20 rounds - Snake increases size every other round if not on turbo
+
+16 July 2021 Edits: Condensed code with the use of Reactive Extensions - Code cleanup - Added replay option and exception handling - adjusted so money is not found on the edge - Adjusted scopes of try blocks, would stall one round if an exception was thrown - Removed particular debug error codes that would otherwise produce a complicated debug assembly
+
+Fixed the design of the code: previous builds had the issue of making sharp lane changes and U-turns, as the program at first would only look at one keypress and direction change each turn, or look at all of them in a single turn. The first build would register three of the same keypress and go that direction in three turns, so making a new turn was not possible until three turns later. The second build with changing direction all in one turn would cause a U-turn (making two right turns) go in the reverse direction immediately the next turn, ending the game. Fixing the immediate backward step would cause the snake to continue in that direction and not make any turns at all if a U-turn was attempted, or only make one turn, at times, if a lane change was attempted. The latest update would look at several keypresses and directional changes while ignoring identical directions and keypresses while also only looking at directional changes once per turn - Changed from any key to play again to spacebar to play again
+
+10 August 2021: Incorporated asynchronous methods for the timed waiting in each game interval, More edits with Task.Delay over Thread.Sleep on top of running the task and waiting on it properly, Adjusted the WhenAll method of Task: started the Delay method before the game method so that the time intervals are more closely matched to the designed game times if the delay task is started before the round tasks, Note: when restarting the game, the timer is close to the intended interval while the first round has some delay since fields are instantiated only when they are used or something like that. Will look into resolving this delay in future updates
+
+—————————————————————————-
+
+using System;
+
+using System.Threading;
+
+using System.Collections.Generic;
+
+using System.Threading.Tasks;
+
+namespace Snake_Game
+
+{
+
+    class Program
+
+    {
+
+        static void Main(string[] args)
+
+        {
+
+            Console.WriteLine("Welcome to Snake Game!");
+
+            Game game = new Game();
+
+        }
+
+    }
+
+    public class Game
+
+    {
+
+        static int speed = 100;
+
+        static int xAxis = 71;
+
+        static int yAxis = 21;
+
+        static Random rand = new Random();
+
+        public static bool active = true;
+
+        static int turns = 0;
+
+        static int turboMode = 0;
+
+        static (int x, int y) money = (1, 1);
+
+        static (int x, int y) currentPosition = (11, 2);
+
+        public static Direction currentDirection = Direction.up;
+
+        static LinkedList<dynamic> theSnake = new LinkedList<dynamic>();
+
+        static bool wait = true;
+
+        static DateTime t1 = DateTime.Now;
+
+        static DateTime t2 = DateTime.Now;
+
+        static KeyWatcher source = new KeyWatcher();
+
+        static MySubscriber<ConsoleKey> sub = new MySubscriber<ConsoleKey>();
+
+        public Game()
+
+        {
+
+            playGame();
+
+        }
+
+        #region Game_Methods
+
+        public static void PrintBoard()
+
+        {
+
+            Grid grid = new Grid();
+
+            foreach ((int x, int y) snakePart in theSnake)
+
+            {
+
+                grid.grid[snakePart.y, snakePart.x] = true;
+
+            }
+
+            PrintSolidLine();
+
+            for (int row = yAxis; row >= 1; row--)
+
+            {
+
+                bool[] rowPart = new bool[xAxis + 1];
+
+                for (int colNum = 1; colNum <= xAxis; colNum++)
+
+                {
+
+                    rowPart[colNum] = grid.grid[row, colNum];
+
+                }
+
+                PrintLine(rowPart, row);
+
+            }
+
+            PrintSolidLine();
+
+            #if DEBUG
+
+            Console.WriteLine(t2 - t1);
+
+#endif
+
+        }
+
+        public static void PrintLine(bool[] row, int moneyRow)
+
+        {
+
+            Console.Write("]");
+
+            for (int xValue = 1; xValue <= xAxis; xValue++)
+
+            {
+
+                if (money.y == moneyRow && money.x == xValue)
+
+                {
+
+                    Console.Write("$");
+
+                }
+
+                else if (row[xValue] == true)
+
+                {
+
+                    Console.Write("#");
+
+                }
+
+                else
+
+                {
+
+                    Console.Write(" ");
+
+                }
+
+            }
+
+            Console.Write("[");
+
+            Console.WriteLine();
+
+        }
+
+        public static void PrintSolidLine()
+
+        {
+
+            Console.Write("]");
+
+            for (int xValue = 1; xValue <= xAxis; xValue++)
+
+            {
+
+                Console.Write("-");
+
+            }
+
+            Console.Write("[");
+
+            Console.WriteLine();
+
+        }
+
+        public static void GetNewMoney()
+
+        {
+
+            money.x = rand.Next(3, xAxis - 2);
+
+            money.y = rand.Next(3, yAxis - 2);
+
+            if (theSnake.Contains(money))
+
+            {
+
+                GetNewMoney();
+
+            }
+
+        }
+
+        public static void playGame()
+
+        {
+
+            bool running = true;
+
+            Console.WriteLine("Press any key to start playing Snake ^_^");
+
+            Console.ReadKey();
+
+            active = true;
+
+            do
+
+            {
+
+                try
+
+                {
+
+                    RunningGameStages();
+
+                    bool notSure = true;
+
+                    while (notSure)
+
+                    {
+
+                        Console.WriteLine($"Game over, you lasted {turns} turns :P");
+
+                        Console.WriteLine("Play again? Escape to cancel, press Space to play again");
+
+                        ConsoleKey answer = Console.ReadKey(true).Key;
+
+                        if (answer == ConsoleKey.Escape)
+
+                        {
+
+                            running = false;
+
+                            notSure = false;
+
+                            break;
+
+                        }
+
+                        else if (answer == ConsoleKey.Spacebar)
+
+                        {
+
+                            notSure = false;
+
+                            break;
+
+                        }
+
+                        Console.Clear();
+
+                        PrintBoard();
+
+                    }
+
+                }
+
+                catch (Exception ex)
+
+                {
+
+                    Console.WriteLine(ex.Message);
+
+                    Console.WriteLine(ex.Source);
+
+                    Console.WriteLine(ex.InnerException);
+
+                }
+
+            } while (running);
+
+            static void RunningGameStages()
+
+            {
+
+                GetNewMoney();
+
+                active = true;
+
+                turns = 0;
+
+                currentPosition = (11, 2);
+
+                currentDirection = Direction.up;
+
+                theSnake.Clear();
+
+                turboMode = 0;
+
+                // KeyWatcherStart();
+
+                source.Subscribe(sub);
+
+                do
+
+                {
+
+                    /*
+
+#if DEBUG
+
+Console.WriteLine($"line 37: turns is {turns} and currentPosition is {currentPosition.x} {currentPosition.y}");
+
+Console.WriteLine($"the whole snake");
+
+#endif
+
+                    */
+
+                    Task task = Task.Run(() => Go());
+
+                    task.Wait();
+
+                } while (active);
+
+            }
+
+            static async Task Go()
+
+            {
+
+                await Task.WhenAll( SleepTurn() , SingleGameStagePart() );
+
+            }
+
+            static async Task SleepTurn()
+
+            {
+
+                await Task.Delay(speed);
+
+            }
+
+            static async Task SingleGameStagePart()
+
+            {
+
+                t1 = t2;
+
+                t2 = DateTime.Now;
+
+                // try
+
+                // {
+
+                    if ((!(turns == 1 || turns == 2 || turns == 3 || turns == 4 || turns == 5 || turns % 2 == 0)) || turboMode != 0)
+
+                    {
+
+                        theSnake.RemoveLast();
+
+                    }
+
+                    if (turboMode != 0 && turboMode % 2 == 0)
+
+                    {
+
+                        if (theSnake.Count >= 5)
+
+                        {
+
+                            theSnake.RemoveLast();
+
+                        }
+
+                    }
+
+                // }
+
+                // catch (Exception ex)
+
+                // {
+
+                //     Console.WriteLine("Line 158");
+
+                // }
+
+                /*
+
+                // https://social.msdn.microsoft.com/Forums/vstudio/en-US/9da27ed7-1453-414c-b17f-b056b83f5a21/ignoringdiscarding-stacked-keyboard-inputs-after-a-threadsleep?forum=csharpgeneral
+
+                while (Console.KeyAvailable)
+
+                Console.ReadKey(false);
+
+                */
+
+                //try
+
+                //{
+
+                source.Run();
+
+                if (turboMode > 0)
+
+                {
+
+                    speed = 75;
+
+                    turboMode--;
+
+                }
+
+                else
+
+                { speed = 100; }
+
+                switch (currentDirection)
+
+                {
+
+                    case Direction.up:
+
+                        currentPosition.y++;
+
+                        break;
+
+                    case Direction.right:
+
+                        currentPosition.x++;
+
+                        break;
+
+                    case Direction.down:
+
+                        currentPosition.y--;
+
+                        break;
+
+                    case Direction.left:
+
+                        currentPosition.x--;
+
+                        break;
+
+                }
+
+                if (theSnake.Contains(currentPosition))
+
+                {
+
+                    active = false;
+
+                }
+
+                if (currentPosition.x == 0 || currentPosition.x == xAxis + 1 || currentPosition.y == 0 || currentPosition.y == yAxis + 1)
+
+                {
+
+                    active = false;
+
+                }
+
+                if (theSnake.Contains(money))
+
+                {
+
+                    GetNewMoney();
+
+                    turboMode = 20;
+
+                }
+
+                theSnake.AddFirst(currentPosition);
+
+                if (active)
+
+                {
+
+                    Console.Clear();
+
+                    PrintBoard();
+
+                }
+
+                /*}
+
+                catch (Exception ex)
+
+                {
+
+                    Console.WriteLine("Line 228");
+
+                }*/
+
+                turns++;
+
+            }
+
+        }
+
+        #endregion
+
+    }
+
+    #region Supplement_Classes
+
+    public class MySubscriber<T> : IObserver<T>
+
+    {
+
+        public void OnNext(T value)
+
+        {
+
+#if DEBUG
+
+Console.WriteLine($"Line 219: OnNext ConsoleKey c and it is {value}");
+
+#endif
+
+            KeyChanged(value);
+
+        }
+
+        public void OnCompleted() => Console.WriteLine("Complete");
+
+        public void OnError(Exception ex) => Console.WriteLine("Error: " + ex);
+
+        public void KeyChanged(T value)
+
+        {
+
+            // key = Console.ReadKey(true).Key.ToString();
+
+            switch (value)
+
+            {
+
+                case ConsoleKey.Escape:
+
+                    Game.active = false;
+
+                    break;
+
+                case ConsoleKey.UpArrow:
+
+                    if (Game.currentDirection != Direction.down)
+
+                    {
+
+                        Game.currentDirection = Direction.up;
+
+                    }
+
+#if DEBUG
+
+Console.WriteLine($"direction is now up");
+
+#endif
+
+                    break;
+
+                case ConsoleKey.RightArrow:
+
+                    if (Game.currentDirection != Direction.left)
+
+                    {
+
+                        Game.currentDirection = Direction.right;
+
+                    }
+
+#if DEBUG
+
+Console.WriteLine($"direction is now right");
+
+#endif
+
+                    break;
+
+                case ConsoleKey.DownArrow:
+
+                    if (Game.currentDirection != Direction.up)
+
+                    {
+
+                        Game.currentDirection = Direction.down;
+
+                    }
+
+#if DEBUG
+
+Console.WriteLine($"direction is now down");
+
+#endif
+
+                    break;
+
+                case ConsoleKey.LeftArrow:
+
+                    if (Game.currentDirection != Direction.right)
+
+                    {
+
+                        Game.currentDirection = Direction.left;
+
+                    }
+
+#if DEBUG
+
+Console.WriteLine($"direction is now left");
+
+#endif
+
+                    break;
+
+            }
+
+        }
+
+    }
+
+    public class KeyWatcher : IObservable<ConsoleKey>
+
+    {
+
+        private readonly List<Subscription> _subscriptions = new List<Subscription>();
+
+        public IDisposable Subscribe(IObserver<ConsoleKey> observer)
+
+        {
+
+            var sub = new Subscription(this, observer);
+
+            _subscriptions.Add(sub);
+
+            return sub;
+
+        }
+
+        public void Run()
+
+        {
+
+            ConsoleKey temp = ConsoleKey.Spacebar;
+
+            bool foundOne = false;
+
+            while (Console.KeyAvailable && foundOne == false)
+
+            {
+
+                // passing true here stops the console from showing the ConsoleKeyacter
+
+                ConsoleKey c = Console.ReadKey(true).Key;
+
+                // iterate over snapshot to handle the case where the observer
+
+                // unsubscribes from inside its OnNext method
+
+                foreach (Subscription sub in _subscriptions.ToArray())
+
+                {
+
+                    if (c == GetDirectionToConsoleKey(Game.currentDirection))
+
+                    {
+
+                        sub.Observer.OnNext(c);
+
+                    }
+
+                    if (c != GetDirectionToConsoleKey(Game.currentDirection) && foundOne == false)
+
+                    {
+
+                        sub.Observer.OnNext(c);
+
+                        temp = c;
+
+                        foundOne = true;
+
+                    }
+
+                }
+
+            }
+
+        }
+
+        public static void GetNextConsoleKey()
+
+        {
+
+        }
+
+        public static ConsoleKey GetDirectionToConsoleKey(Direction direction)
+
+        {
+
+            switch (direction)
+
+            {
+
+                case Direction.up:
+
+                    return ConsoleKey.UpArrow;
+
+                case Direction.right:
+
+                    return ConsoleKey.RightArrow;
+
+                case Direction.down:
+
+                    return ConsoleKey.DownArrow;
+
+                case Direction.left:
+
+                    return ConsoleKey.LeftArrow;
+
+                default:
+
+                    return ConsoleKey.Spacebar;
+
+            }
+
+        }
+
+        private void RemoveSubscription(Subscription sub)
+
+        {
+
+            _subscriptions.Remove(sub);
+
+        }
+
+        private class Subscription : IDisposable
+
+        {
+
+            private KeyWatcher _parent;
+
+            public Subscription(KeyWatcher parent, IObserver<ConsoleKey> observer)
+
+            {
+
+                _parent = parent;
+
+                Observer = observer;
+
+            }
+
+            public IObserver<ConsoleKey> Observer { get; }
+
+            public void Dispose()
+
+            {
+
+                if (_parent != null)
+
+                {
+
+                    _parent.RemoveSubscription(this);
+
+                    _parent = null;
+
+                }
+
+            }
+
+        }
+
+    }
+
+    class Grid
+
+    {
+
+        public bool[,] grid = new bool[100, 100];
+
+    }
+
+    public enum Direction
+
+    {
+
+        up = 1,
+
+        right = 2,
+
+        down = 3,
+
+        left = 4
+
+    }
+
+    #endregion
+
+}

@@ -1,0 +1,78 @@
+Text to Link
+C# Code
+
+If you have the need to take a list of text and only want the http:link.com portion of it, you can use the C# code below to take a .txt file with that list and produce a list of links only:
+
+You would need to:
+
+1 - make a .txt file, named “LinksGoHere” (and put it on your desktop) with the list to process, with each line separated with return/enter, and
+
+2 - replace “username” in the code with the name of the local user of your device for mac. On Windows, you would replace the entire line with the filepath (location) of your .txt file. the filepath is “fileAddress” in the code
+
+If you don’t know how it code, it’s ok. Just install a coding program (with whatever C# tools it asks you you want when you install the coding application) then copy and paste to the program and click Run
+
+Here it is:
+
+[edited 26 March 2021]:
+
+using System;
+
+using System.IO;
+
+using System.Collections;
+
+namespace LinkShort{
+
+class Program{
+
+static void Main(string[] args){
+
+string fileAddress = "/Users/Username/Desktop/LinksGoHere.txt";
+
+string newAddress = "/Users/Username/Desktop/LinksComeOutHere.txt";
+
+StreamReader reader = new StreamReader(fileAddress);
+
+ArrayList Links = new ArrayList();
+
+ArrayList LinksNew = new ArrayList();
+
+while (reader.Peek() >= 0) { Links.Add(reader.ReadLine()); }
+
+foreach (var entry in Links){
+
+string item = (string)entry;
+
+int index = 0;
+
+int length = item.Length;
+
+string NewString = "";
+
+index = item.IndexOf("http");
+
+if (index != -1){
+
+NewString = item.Substring(index, length - index);}
+
+LinksNew.Add(NewString);}
+
+File.Delete(newAddress);
+
+foreach (var newLink in LinksNew) { Console.WriteLine(newLink); }
+
+using (FileStream fs = new FileStream(newAddress
+
+, FileMode.OpenOrCreate
+
+, FileAccess.ReadWrite)){
+
+StreamWriter file = new StreamWriter(fs);
+
+foreach (var line in LinksNew){
+
+file.WriteLine((string)line);}
+
+file.Flush();
+
+file.Close();}}}}

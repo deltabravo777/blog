@@ -1,0 +1,5968 @@
+Space Invaders
+C# Code
+
+Visual Studio 2019, C# 8, .NET 5
+
+Most Recent Edits: 14 October 2021:
+
+Intro: This is still under development. More levels will be added for difficulty and enjoyment, while the build as it is functionally works. Maximize the window and press tab to switch weapons
+
+Edits: Game ends when health goes to zero, methods condensed for future developments, used generic methods for dealing with different types of objects and specific types deriving from underlying base classes, created a second wave of enemy ships of a different kind that uses faster projectiles. Accidentally removed the method that damaged enemy ships - reinserted, absolute value used to shortcut bounds checking error, created a CustomGrid class that has an indexer to access its array. This was made so that the array can take negatives values. C# version build mentioned for clarity: while this was coded on C# 9.0, version 8.0 is required for compilation. Height of the window reduced by two
+
+13 August 2021: CustomGrid calculations fixed
+
+16 August 2021: Pause option added and game will pause if you press keyboard key ‘P’. Coalesced the common variables of the enemy ship and weapon class and had them inherit from a new base class, made new methods for updating enemy coordinates with a new direction enum and operating on that, created static variables for speed of objects and them moving positions so that changing them is easier and also possible during game for future developments. Reduced LINQ operations into one step instead of two, created a universal method for updating enemy health for ships and projectiles, enemy rockets can be shot down, pause menu text dialog centered, other code cleanup. There currently is a bug where a friendly rocket would hit an enemy ship right as the enemy ship would send a rocket and would destroy the rocket and not the enemy ship and this bug will be addressed in future updates. Moved most of the methods that were inside one method outside of that, more code organization. Fixed calculations for enemy rockets, added some developer comments in the code, added to-do list
+
+17 August 2021: Created a save game option in the pause menu dialog. Game fields moved to a new Data class which an instance of which is made for playing the game and since this stores the game data this is serialized to a save file for saving and loading games. Rewrote code so that it refers to the data instance and not referencing to static fields within the Game class. Moved some other classes around for compilation. Reduced redundancies in the print methods, created a notification when the game is saved and loaded. Added exception checking in case the player tries to load a game file without an existing game file to which an error notification will appear. The string path of the game save file is generated with the Path.Combine function so that it works with all operating systems
+
+18 August 2021: If you attempt to load a saved game after a new build is released, it will cause an error since some variables are new or not marked as non-serialized. This bug is has been addressed with nons-serialized attributes attached to fields and OnSerialzied and OnDeserialied methods added which also reset non-serialized fields to their intented values as their default values of zero would otherwise be assigned and also keeping the serialization and deserialization methods more universal. Shifted the diagnostic messages to the side and added a line for showing the current size of the application in kilobytes. Added a reset option in the pause menu. Fixed the pause menu so that the diagnostics appear as they do in-game, removed an extraneous deserialzation method. “Made” top tiered classes internal (as they are internal by default), made most fields and methods internal as well
+
+19 August 2021: Coalesced EnemyItems and FriendlyProjectile into Items with their overlapping variables. Created a method for diagonal shooting though this doesn’t make the game more fun for the time being. Converted the rectangular array for displaying graphics to a long one dimensional array so that it can potentially be serialized to XML. Macbook Pro M1 does not support Docker as its chipset has a different architecture than Intel ones so SQL will have to wait for now / find another image. Fixed a bug in which after resetting the game it would appear that enemy ships removed and enemy projectiles removed counts are non-zero though this was caused by not writing over the old numbers on the console. Converted the long one dimensional array that held grid contents to a jagged array
+
+Version 2 has been posted at the end of August 19th. This build starts with fighters that send homing missiles. This build will be tweaked for better missile responsiveness while bringing back the other waves in the previous builds along with other code maintenance. Combined LINQ queries with extension methods that use lambda expressions
+
+Brought back both previous waves for three waves total for now. Build 2.0.1.0 has faster enemy missile speed and the waves put altogether is more challenging
+
+20 August 2021: The calculations for homing missiles was fixed since deltaX should be multiplied by a ratio to be compared to deltaY. The resulting missile paths are smooth from launch to contact if the player ship does not move (or as intended, even if it does). Player health increased to 15 for better gameplay / testing (since the enemy missiles work better now). Changed friendly missiles to dark yellow since having a lot of red projectiles looks a little cluttered. More code maintenance. Changed so that enemy bullets can be shot down. Changed enum values from camelCase to PascalCase. Enemy missiles instantiated with width and height to 1 (previously had the default value of 0) so they could be more easily shot down with friendly missiles
+
+25 August 2021: Serialization can be done with JSON. The settings for serialization are at the top of the code and future builds will have this setting configurable within the game
+
+26 August 2021: Updated to do list. XML serialization is not possible with the code as it is since XML serialization requires a parameterless constructor while most of the classes for items and projectiles use a constructor that takes parameters as arguments. Serializing tuples is explained. Added the .NET 5 specification since System.Text.Json is comes with NET Core 2.2 or something like that, not that this current code uses System.Text.Json, though if future builds use particular assemblies that are part of NET Core (or now called .NET 5) and not NET Framework, using the “Core” version may be ideal
+
+27 August 2021: Code redesign: game rounds are being moved from individual methods to classes. There is now a base class called GameRound that has a Run method, with derived classes using that as a base class. So far I have made a class called RoundOne. An instance of RoundOne is made when round one starts, and this is added to a List<GameRound> called “queue”. Each round looks at the queue and runs each Run method in that list. Coded so that it still works with serialization as deserializing “RoundOne” instances are inherently GameRound objects within List<GameRounds>, so I manually made a method that created new instances of the specific classes upon loading the program when JSON is used. In other edits, the redundancies in updating the ships have been coalesced with new methods that check if the ship moves or shoots. Other code organization done. Finished moving all the methods into their respective classes and cleaned up the code by removing extraneous fields and properties. More organization and formatting
+
+28 August 2021: The Run method within each class has a lot of similarities, so the logic of the code has been coasleced into a new method that uses a Func delegate as a paramter. The simplicity has been shown by commenting out the clutter that this new method offers for the first class. The code will be allied to the otehr two GameRound inheriting classes soon. Code fixed since variables sent as parameters are not changed by the class instance unless marked with the ref keyword, though since properties cannot be configured with the ref keyword (since properties are inherently methods and not fields though they seem to be “like” fields), the SendShipsOrNo will now have a return type of int, which is then used to update “current”, which is then further used to figure out of if the round is over or not as opposed to having a round that does not end. Last touchups for the 28th: all three classes have been simplified with the SendShipsOrNo method, and for further simplification, there is a new method created that is alled RunGeneric. RunGeneric takes four variables, the Action delegate, the current turn number, the X coordinate start position, and the Y coordinate start position. This method is called in Run. With these changes, the Run method within each GameRound class is now one line, with all the variables that the object needs being in contained within the fields that is has and refers to an organized set of variables within the Defaults static class. All these changes from the last week or so should make it relatively easy to create future GameRounds by simply passing in variables without having to “code” too many additional lines of text. The single line execution for RoundOne has been shown and RoundTwo and RoundThree will be enhanced soon, with the clutter removed left in comments
+
+29 August 2021: GameRound inheriting classes have been touched up on. There is a SetConstants method that is used for both within the constructor and within the OnDeserialized method. Some variables are sent as parameters “within the class” while other variables are passed from the methods in the base class and “aren’t seen” at the top. While all or none of the variables need to be sent within the RoundNumber class, which ones to “explicitly” send and which ones to “implicitly” send can be thought over and hashed out another day. It makes some sense to show the starting X and Y coordinates since it helps to see where things are being sent to, though this might also apply for Direction as well
+
+30 August 2021: Asynchronous method execution has been applied to the RoundNumber’s run method, and the methods that they call upon that modify the List of ships and projectiles have also been changed to be ran asynchronously. For good measure, all methods that modify a List have been wrapped around a ‘lock’ locking method. This however, makes the game a bit slower since I had to create a new List called taskRun that is made and disposed every round, which contributes a bit to the overhead perhaps. Array Renting can perhaps help with the slow start but otherwise the asynchronous functionality works alright. The method to run multiple asynchronous Tasks should be WaitAll and not WhenAll and the code has been changed to reflect that since we want to block the program until the method groups are finished executing. The method UpdateEnemyProjectiles_GeneralRemove will be enhanced soon: the locking should be ideally brief, and the method checks if an enemy projectile either 1: hits the player ship, 2: goes out of bounds, or 3: has zero health. These three stipulations can and should be ran asynchronously with another WaitAll, locking the shared List that they use, then update their information to the grid. This may be soon the primary case in which locking may be important for the time being since the other methods currently are not trying to access the same List at the same time. In future rounds in which there are multiple waves of the same ship, locking will be more important, but in the general sense of protecting thread-safety, locking has been added. The importance and functionality of locking will be demonstrated soon
+
+31 August 2021: There is a bug in which some enemy bombs are not destroyed. A possibility is that currently the friendly projectiles are updated and marked on the grid first, then the enemy bomb is moved, then the enemy bomb is calculated if it has zero health. The problem is that if a friendly projectile and enemy bomb are next to each other on one turn, they will not touch each other, and on the next turn the friendly bullet will move one unit, the enemy bomb will move one unit, and after passing each other they will still not have made contact and when calculating if the bomb loses health, it won’t lose any since they haven’t made contact (on furher analysis, I found what is happening: the problem is that when a friendly bullet is next to the enemy bomb, the enemy bomb will calculate if it takes damage, which it doesn’t. Then the enemy bomb will move to the position of the friendly bullet, but since the calcuation for damage was already done, when it occupies the position of the friendly bullet it won’t take damage. Then the next turn they both move away from each other and miss the step where the enemy bomb takes damage). Moving the method for checking if it loses health before moving the enemy bomb does not work since the method that marked the position on the grid is currently also built into the method that moves the bomb, so I will be working on fixing this code so that all friendly bullets make contact with all enemy bombs. Another issue is that when an enemy bomber deploys a bomb, another enemy bomber can deploy a bomb at the same position, so there can be two non-identical enemy bombs that occupy the same position. I will also fix the code so that projectiles are not created if there is a projectile of the same type that is already in the List. The solution is to either 1: check and use the method for taking damage before and after moving the enemy bomb, or 2: configure the method so that enemy bombs take damage also from bullets that are on top of them. Both can work, though to address the possible room for error: with 1, the issue arises if an enemy bomb can be damage from a friendly bullet twice. This is not possible since friendly bullets are removed if they cause damage. Tactic 1 can work but it will start to not work if we change the code so that friendly bullets are not removed (as if they are penetrating) or if friendly bullets had health. Tactic 2 should work, since bullets and bombs are linear projectiles and the only way to pass each other is through each other, though there is going to be a problem if we have diagonal bullets so that one bullet can go behind an enemy bomb and damage it without passing through it. I will think about the best option for addressing this problem (and I am going with tactic 1 since friendly bullet I will have be removed for the duration for the development of the program, however, while this removes a friendly bullet or friendly rocket once, it will be taking damage from friendly lasers twice. This further issue can be solved be halving the effectiveness of friendly lasers, though the code should be commented to reflect that)
+
+Build 3.5.0.0 has been posted to address all of the aforementioned changes and seems performant
+
+1 September 2021: Tweaked the code a little bit so that the RunGeneric method within the Run class in the RoundNumber classes are passed a Direction enum so the code reflects a bit more clearly which direction the ships are being sent. I dabbled a little bit with the Timer class (both System.Threading.Timer and System.Timers.Timer) though they don’t particularly make the code perform better. More notes in the code. I played around (unnecessarily) with Parrallels and Parellel.ForEach makes the code worse (since parallel computation only has its benefits for large collections, as the overhead in executing parallel programming is more burdonsome than synchronous enumeration), so that was commented out (but shown what it would have looked like)
+
+3 September 2021: Changed a couple of static classes to struct. Configured the fields in Defaults to with the readonly keyword. Added a option menu within the pause menu, where the mechanism for serializing game saves can be configured in game. The default is JsonNewton, and will be so each time you start the program. I will soon edit this code so that the game save context is part of data, so if you load a game, that context is loaded as well. New build has been posted that does save the serialization context, although there is a problem in that the current serialization context is also sued as the deserialization context as well, so if you serialize the game with Json for example, then change the option to binary, attempting to load the game will cause an error. This bug will be addressed soon. There is also an odd issue in how the background color is being configured. Changing the color to “Black” is more black than the default console color, though the default console color is also darker than “Dark Grey”. For now, the background has been set to “Black” for consistency, though I’ll look into if there is a Grey that is darker than Dark Grey and lighter than Black, if there is one (this is how it looks on a Mac. The game delay is unbearable on my Windows pc and I’ll also look into a way to address this as well, if it is possible). Another build has been posted, with the change that if there is a load error, it will write in the menu if the load error was caused by the save file not existing or if the (de)serialization context was configured incorrectly
+
+7 September 2021: Reworked the game so that the game stages are a bit more fun. As for bug issues, there was a bug where the friendly bullet would hit an enemy ship that had width though the previous build only registered contact with the exact enemy ship location, and not the full width, and that was fixed. The similar calculations for friendly rockets was also fixed. Friendly rockets currently are not destroyable, which can hit pretty much everything and still be going, and this notion will be addressed in future builds. Enemy ships can now change direction, and the code has been modified so that the player ship can only be damaged once per 5 turns (or around once per 1.5 seconds), also so the player ship cannot be damaged multiple times per turn. There is a slight issue with overlapping enemy projectiles, since the build as it is has enemy fighters that send missiles from the same Y-Axis position, so therefore, a group of enemy missiles will have the same Y-coordinate position, and tend to overlap. Otherwise, a couple more rounds have been added
+
+There is a question of how to easily develop the program as the methods themselves are configured with looking at the new int “stage” variable contained by the enemy ship, then uses this to evaluated when to make turns in direction. I am considering creating a new collection within the “data” instance that is an array of a sort that holds the stage-turn-direction (those exact values) tuples, and have the methods that update enemy ships look at the array, then compare the collection tuple values to the enemy ships that they are working on. I’ll see how this turns out. Since I brought it up, the enemy ship has a new property called “stage” that is used in which pattern the ship should take. I thought about making a new List for enemy fighters called EnemyFightersTwo and EnemyFightersThree or the like, but I thought this would have been bad for scalability, as I want to avoid having to make a new collection each wave, and reserve one List for each type of enemy ship. For good practice, I will find a way to develop the methods while containing the least number of exact literals (such as values==”20”) within the method, so that the methods can be left alone with the least number of modifications as more GameRounds are developed
+
+“pragma warning disable” has been added to reduce the clutter of the warnings that have to do with asynchronous tasks, specifically CS4014 and CS1998. “stage” for round 5 was off, though all of the parameters passed were changed from their literal numberes to the int variable instantiated by the type. The LINQ Distinct() extension method has been used to update the enemy missile list and keep only the ones that have unique x and y coordinates
+
+New build has been posted in 4.1.0.0 in which the enemy ship direction changes instructions are stored in an array called “directionChanges”. This is a List of type (int stage, int steps, int moveSpeed, Direction direction). Each GameRound inheriting class or RoundNumber constructor creates these tuples and adds them to the directionChanges list. When the method that updates the enemy ships calls on the method CheckIfShipsChangeDirection, it uses a nested iteration foreach loop to look at each ship and object in the directionChanges list, checks if the stage is matches, check if the turns have been satisfied with the move speed, and changes the ships direction if needed. Since tuples are added in order and this is ran synchronously, we did fine if the condition “greater than 10” is overriden (in the english sense, not the keyword) with “greater than 20”, although for technical reasons, if we did not maintain the ordering or ran this asynchronously, we would have some problems. The code that can be removed as a result of this new tactic has been commented out: instead of modifying the method each time we want to make direction changes, we simply create new tuples containing such information and add them to the directionChanges List that has the instructions we need. The Tasks UpdateEnemyBomberWave_MoveOrShoot and UpdateEnemyFighterWave_MoveOrShoot can now apply to all bombers and fighters regardless of which wave/stage that they are a part of. I will make a minor edit in which using two terms to describe the same thing is confusing
+
+8 September 2021: Fixed a bug where I accidentally reduced the strength of friendly bullets instead of friendly lasers. Previous patch reduced the laser damage as its effectiveness was twice that, though I’ll post a new build in which the values of the damages is as it is and the laser damage would be halved in the methods that use them
+
+We need to keep for now, the manual downcasting of GameRound objects to their RoundNumber counterpart. Technically, there doesn't seem to be a way to implicitly or explicitly downcast a deserialized GameRound object to its needed type, but we have another non-issue: directionChanges and projectileDischarges are not serialized since tuples cannot be serialized, so if we save a game then load it again after we close the program, we at first would think that the said Lists are empty, since they are not saved and loaded. However, when we load a game, we load the GameRound objects and manually convert them into RoundNumber objects, and when we do so, we create a RoundNumber instance which calls the constructor with the method that adds the needed objects into the directionChanges and projectileDischarges, then reassign the 'current' stage status into the new object
+
+The enemy projectile discharges are also summed up in a List and behaves similar to directionChanges, making the method directing enemy ships to fire succinct. The tuple used has two bool values of “command” and “burst”, which will be used in the future to indicate the shooting behavior of being able to fire on command and fire in bursts. Enemy ships have been added a value of secondaryShootingSpeed and renaming its existing value to primaryShootingSpeed so that these values can be used to direct the enemy ships shooting. The struct Defaults has been added closer to the top of the program as it is used more often than Data and the other supplementary classes
+
+The method that checks if friendly rockets hit enemy ships has been fixed. The calculation for the position of the rocket to be moved was missing the width and height adjustments and was attempting to remove a rocket that did not exist, especially since contact was calculated to be met, one y coordinate below the enemy ship. The methods for removing projectiles for a couple of them have been adjusted so it removes multiple items without using the break keyword and by applying LINQ. The old code that was removed has been commented out. The code works in the sense that friendly rockets are removed upon one hit, though it was fun when they were indestructible. I might give them a health value perhaps. Build 4.3.0.0 has been posted and this build introduces the option to change game speed in the option menu during gameplay
+
+9 September 2021: The option menu has been adjusted so that you can press B to immediately jump back to the previous screen. Otherwise, you can type in an input and that value will be converted to a number to change the game speed. If you have a breakpoint set up in Visual Studio at line number 404 (with build 4.5.0.0), you can type in “xmine” in the speed change option menu to hit the breakpoint in the code, which is great for testing purposes so you can stop the program and examine the code and its locals and all. Some exception will add values to errorMessage and errorMessageCode, which are now values that are printed on the side for diagnostics. Enemy ships that are shot down are registered as ‘enemy ships destroyed’ and enemy ships that go out of bounds are registered as ‘enemy ships removed’, so that shortly I can add health drops or the like when enemy ships get shot down. CheckIfShipsChangeDirection was missing the evaluation of the enemy ship speed, which should me multiplied by the number of steps it takes to direct it when to start firing, and the tuple in projectileDischarges has been modified to use an additional int to be used. The main pause menu can use either B or P to un-pause the game. Throughout the code, the removal of items from a collection has been used with LINQ as opposed to iteration with foreach and breaking out of it when one is removed. The method for checking if an enemy item is hit by a friendly bullet has been fixed, as the application of the item’s width was using the sideWidth value inside the iteration instead of the ‘int i’ local variable that is changed throughout iteration. Enemy items can only be damaged once per friendly projectile type per turn, and the damage of friendly lasers being havled has been removed. The values lastBulletHit, lastLaserHit, and lastRocketHit have been added to the Types so that they are only damaged when the current turn is not those dates
+
+There is a new method within updating the rounds that checks to remove the direction change dictations once they are no longer used. For example, if there are no ships that are of wave number 2, then we can remove all the dictations that have a tuple with stage being the value of 2. The method checks to this kind of evaluation, though there is a problem in which a GameRound can create the dictations and add them to the List, then the game would check to remove those dictation before any of the enemy ships are sent, with the result that the game would remove those dictations because there are no ships and thinks the round is over. The current fix I have implemented is checking that all the rounds are at least 100 turns old. This causes some problems in that none of the dictations will be removed if not all of the rounds are 100 turns old, while also making some liabilities such as making sure that ships are sent within 100 turns and the sort. I will change this code soon so that it can look at rounds on a one by one basis and evaluate a round end date. However, there is a fact that enemy ships can be operational after a game round is over, since a game round exists to send ships. We have a three way contention of these things:
+
+1: A gameround is sending enemy ships
+
+2: A dictation is directing the enemy ships
+
+3: The actual enemy ship itself
+
+A gameround exists and can be disposed depending on the date, or turn number. It starts at a certain date, and it disposed consistently once it is done sending ships. The GameRounds object is also the one who has the method that makes dictations itself
+
+Dictations are created by the GameRound, and exist to direct the ships. We can dispose of them once there are no more ships of that wave number to direct, although this is difficult in the sense that
+
+We don’t know if there are no enemy ships, if it is because 1: none of been sent yet, 2: all have been sent and removed (then we can dispose of the dictations) or 3: the ones sent have been shot down for now and still need to be sent, along with the idea that because enemy ships are still operational and need dictation after the last one has been sent (or aka when the gameround is finished), of how to efficiently and effectively the dictations without ever doing them too early but while also not postponing it and taking up memory. In other developments, dictations are manually created upon loading the game / deserializing the game file, because there can be the possibility that there are enemy ships in operation without the gameround object no longer existing, since the gameround has finished. The manual analysis of the enemy ships has been done and calls the RoundNumber constructor per wave number if any of those ships are still part of the game
+
+As a note, using steps to direct the enemy ships seems like a good idea over looking at position, since  “change course after 10 steps” is a better way to go about it than “change course at position (30,30)” because the latter requires us to calculate the path of the enemy ship and know its course, but even though this isn’t too hard, it makes it more troublesome if we wanted to shift the path of an enemyship by changing its spawn location, since we wouldn’t be able to just change the spawn location but also the locations that it makes the changes to its path
+
+Code has been fixed as the evalutation of removing items from directionChange and projectileDischarges should be using one list, and not more than one. If we examine the removal of dictation of stage 2, then enter the list of small enemy shuttle, small enemy shuttles do not have a stage of 2, so it will remove the dictation of stage 2 before it evaluates the query again with enemy bombers that do have a value of stage 2, but since the dictation was already removed we would have a bug. Build 4.5.1.0 has been adjusted to address this issue
+
+Build 5.0.0.0 has been posted which introduces health drops. When enemy ships are shot down, it drops a health pack that restores 0.5 health when collected
+
+17 September 2021: The removal of direction changes in directionChanges has been addressed. I have created a List of GameRounds that have finished of type int. This List is used in the method that removes dictations by creating a master list of all the enemy ships, then gets the unique wave numbers that are present. LINQ is used to generate the rounds that have finished with the waves of the ships that are present, giving the wave number of the dictations to remove, then removes the dictations that followed the conditions up to this point. Some other board printing has been adjusted and an ammo count is created (although not yet used yet in the game)
+
+I have also started to implement Events in the Data properties, so that events are fired when properties are changed so we don’t have to manually check for conditions. Some other tweaks have been added to the To Do list
+
+14 October 2021: The Game.reset field has been changed to a property as well as Game.gameLoadedCheck so that events are fired when they are changed. This allows the process to be less burdened by allowing the reset check to be “checked” (in the English sense, not the C# keyword) only when reset and gameLoadedCheck are changed and not every round
+
+Health drops have been adjusted so that they are dropped every 7 enemy ships shot down and provide 2 health. There currently is a bug in which that after resetting the game, the number of enemy ships shot down doubles to 2 per ship as well as 2 looseChange collected per enemy ship shot down, and if the game is reset again then every enemy ship shot down will increment by 3 and 3 looseChange will be collected per enemy ship. This might be due to a “design flaw” of the program:
+
+When the game is reset, there is recursion used in which the broader game method is ran within the game. One option is to fix this problem is to not use recursion, and this might be the source of the problem since it does address the issue in which the enemy ships shot down is increasing by 1 each time the game is reset. The other option is to clear the LINQ query that is destroyedShips after it is used so that when it is accidentally ran a second or third time, it shows up as empty. I will look into if the recursive behavior of the program causes duplication in other parts of the code. A quick look as found that setting the LINQ query to null did not fix the issue. Version 6.1.0.0 has been posted to address this issue and it has been fixed: the game no longer uses recursion in calling PlayGame() within PlayGame(), instead it resets the game with C# events, and uses a new variable called resetGoAhead and sets that to true, ending the game and playing it again with a do-while loop. The counter increments properly regardless of how many times the game was reset
+
+———————————————————————————————————————--
+
+using System;
+
+using System.Collections.Generic;
+
+using System.Threading.Tasks;
+
+using System.Threading;
+
+using System.Linq;
+
+using System.Runtime.Serialization.Formatters.Binary;
+
+using System.IO;
+
+using System.Runtime.Serialization;
+
+using System.Diagnostics;
+
+using System.Xml.Serialization;
+
+using Newtonsoft.Json;
+
+using Newtonsoft.Json.Linq;
+
+using Newtonsoft.Json.Serialization;
+
+// using System.Collections;
+
+// using System.Text;
+
+// using System.Reflection;
+
+// using Newtonsoft.Json.Converters;
+
+// using Newtonsoft.Json.Schema;
+
+// using Json.Net;
+
+// using System.Text.Json;
+
+// using System.Text.Json.Serialization;
+
+#pragma warning disable 4014, 1998
+
+namespace Project_Five
+
+{
+
+    class Program
+
+    {
+
+        static void Main(string[] args)
+
+        {
+
+            int xmn = 637;
+
+            Console.BackgroundColor = ConsoleColor.Black;
+
+            Console.WriteLine("Hello World! Let's play some Space Invaders. Be sure to maximize your window");
+
+            Console.WriteLine("If the screen size is off, pause the game and unpause the game");
+
+            Console.WriteLine("Version 6.1.0.0 by Daniel Bae");
+
+            Console.WriteLine("Press P to Pause game");
+
+            Console.WriteLine("for this code to make use of the breakpoint jump during the game, there should be a breakpoint within the method SpeedMenuReadKey");
+
+            Console.WriteLine($"at around Line number {xmn}");
+
+            System.Diagnostics.Debug.WriteLine("Debug WriteLine");
+
+            Game game = new Game();
+
+            #region To_Do_List:
+
+            //
+
+            // # - done
+
+            // ~ - complications
+
+            // v - void
+
+            // * - note
+
+            // > - in progress
+
+            // ! - important
+
+            //
+
+            // [#] Create a pause dialog screen 
+
+            // [~] Create option saving a game to XML and starting a saved game - jagged arrays can be serialized although to serialize a class instance, the default
+
+            //     parameterless constructor must be used, and cannot use a constructor that takes parameters as arguments. since all projectiles and items in general
+
+            //     use constructors with parameters, using XML is not an option unless we change each of those classes to use a parameterless constructor and go to the
+
+            //     execution code and use field initialization in brackets instead of passing those values in the constructor, which is a bit of work considering
+
+            //     that the w3.org//etcetc namespace also harmlessly appears as a namespeace (even in each row of the jagged array) and looks less appealing, so this can
+
+            //     be done with JSON and while there is room for practice with XML, that can be done another day
+
+            // [#] Create option saving a game to JSON and starting a saved game
+
+            // [ ] Create option saving a game to SQL and starting a saved game
+
+            // [#] Create save game option with binary serialization
+
+            // [ ] Enemy ships bounce on the edge of the screen instead of falling off
+
+            // [ ] Enemy ships throw lasers
+
+            // [ ] Enemy ships follow player position
+
+            // [#] Enemy missiles follow player position
+
+            // [#] Enemy rockets can be destroyed
+
+            // [ ] Enemy ships that go straight down and shoot diagonally from the sides
+
+            // [ ] Add points for taking down enemy ships
+
+            // [#] Print diagnostic messages on the side
+
+            // [ ] Detailed intro before playing game
+
+            // [ ] Use Spacebar to deploy special weapon
+
+            // [ ] Simplify shorter conditional statements with formatting
+
+            // [#] Utilize more nuanced access level keywords
+
+            // [*] Use the ?: ternary conditional operator for some functions
+
+            // [~] Player projectile shoots diagonally - it works though it doesn't make the game more fun
+
+            // [#] Marked unchanged fields as nonserializable and utilized OnSerialized and OnDeserialized methods
+
+            // [#] Reset option added in the pause menu
+
+            // [v] Changed the rectangular array containing the grid to a long flat one dimensional array for XML serialization
+
+            // [#] Show memory usage
+
+            // [ ] Use number keys to switch weapons and/or deploy special artillery
+
+            // [#] Converted the grid from a long one dimensional array to a jagged array
+
+            // [#] Add properties to fields
+
+            // [ ] Console.WriteLine dialog with formatting
+
+            // [#] Json.NET for serialization of enums - built in
+
+            // [#] Check if tuples are Json serializable - the Tuple class, Tuple<T1,T2>, can be serialized while the succinct type (T1, T2) is not. using the older
+
+            //     Tuple class can work, though the fields cannot be renamed and are named as Item1 and Item2, which is more confusing than X and Y. the other options
+
+            //     such as dynamic don't solve the renaming issue and fields cannot be anonymous types
+
+            // [ ] Look into Json.NET vs Newtonsoft and if there is much of a difference
+
+            // [#] Transform game round methods into objects that has a Run method, with these round objects added to a queue that is ran each game round
+
+            // [#] Speed will be a variable that is contained within each Item class as opposed to a variable within the Data class. Each item will refer to its own speed
+
+            //     that it contains
+
+            // [>] Execute the Run methods within the RoundNumber instances asynchronously, use the 'lock' keyword in all the methods that alter an array
+
+            // [*] Note: The WhenAll method can be intentionally slow by design to prevent spamming requests and the sort. Using WhenAll will be like this and the only faster
+
+            //     way would be to not use asynchronous methods. Moving the taskList in the wider scope of the Game class does however improve on performance as it does
+
+            //     not need to constantly dispose and create the object each round, perhaps
+
+            // [#] The execution of several async methods should be used with WaitAll and not WhenAll, sine we want to block further execution until the a group of
+
+            //     asynchronous methods are completed
+
+            // [#] Run async Tasks within methods that analyze several independant conditions
+
+            // [*] As expected, Parallel.ForEach takes longer than foreach when we are enumerating over a small collection. parallel programming has its benefits only
+
+            //     for larger collections
+
+            // [#] Create a BIOS-looking option menu within the pause menu
+
+            // [>] Add more features to the option menu
+
+            // [*] Note: If the screen size is off, you can pause the game then unpause the game and the screen will look proper
+
+            // [#] Load error was changed to an int, the value being the kind of load error that occured. if there is an error in loading the game, there is a
+
+            //     message in if specifically how the error occured
+
+            // [*] Note: Regions marked with _* have regions within them, except for Data
+
+            // [#] Health drop
+
+            // [>] Ships change direction during flight
+
+            // [#] Fix a bug where the enemy ship is not hit by a friendly bullet if the ship has width of more than one. Build 3.6.2.0 only registers if the exact
+
+            //     ship position matches the position of the friendly bullet
+
+            // [#] Create an immune option so if the player ship is hit, it won't take damage for the rest of that turn and the next five turns
+
+            // [#] Fixed a bug in which the serialization context, if changed, will be reset to the default context of Json if the game is reset, but the highlighted
+
+            //     selection would be highlighting where it was last left off. i did a quick fix in which the serialization context is saved temporarily and loaded back
+
+            //     into the 'data' set, though removing the variable that holds the context and have it locally produced and have it derived from the
+
+            //     SerializationContext itself is another option
+
+            // [#] Fixed CheckToSeeIfHitByFriendlyRocket
+
+            // [ ] Friendly rockets seem to be indestructible. this makes it fun since rockets are launched only so often, though this might not do well in future
+
+            //     stages in which we want to fight something like an enemy boss
+
+            // [#] Added GameStages: RoundFour and RoundFive
+
+            // [#] Maintain enemy missile list and keep only the objects that have unique x and y coordinates
+
+            // [*] Json does not work with serializing tuples
+
+            // [ ] Reduce the wave/stage duplication terminology of the same idea
+
+            // [#] Tweaked the health of enemy bombs and missiles
+
+            // [ ] Adjust friendly projectile and laser damage, fix a bug and let the values be as they are and halve the laser damage in the methods
+
+            // [ ] Adjust ships so that they have a command option and not only fire projectiles cyclically
+
+            // [ ] We need to keep for now, the manual downcasting of GameRound objects to their RoundNumber counterpart. technically, there doesn't seem to be a way
+
+            //     to implicitly or explicitly downcast a deserialized GameRound object to its type, but we have another non-issue: directionChanges and
+
+            //     projectileDischarges are not serialized since tuples cannot be serialized, so if we save a game then load it again after we close the program, we
+
+            //     at first would think that the said Lists are empty, since they are not saved and loaded. However, when we load a game, we load the GameRound objects
+
+            //     and manually convert them into RoundNumber objects, and when we do so, we create a RoundNumber instance which calls the constructor with the method
+
+            //     that adds the needed objects into the directionChanges and projectileDischarges, then reassign the 'current' stage status into the new object.
+
+            // [>] When you make a new GameRound, be sure to also add the deserialization downcasting instructions as well
+
+            // [#] Fixed CheckToSeeIfHitByFriendlyBullet to remove all objects that met the condition instead of using "break" to avoid the "collection has been modified"
+
+            //     exception. this LINQ pattern can and should be used in other parts of the code
+
+            // [#] The code for friendly rockets have been fixed since it was missing the +a and +b width and height adjustments and the rockets are no longer
+
+            //     indestructible
+
+            // [>] Consider the ordering of the items in the print methods
+
+            // [*] We will use 'steps' as the instructions for ships changing course. using coordinates such as "at x,y of 14,15" is prone to more errors in that
+
+            //     we will have to calculate the trajectory of the ships, and in the case of errors the ship will not change course. another reason while this is
+
+            //     not too difficult to do, is the notion that if we also change the start location, we would also need to change the spots in which to change course
+
+            //     as well, as opposed to being able to shift the path with a single change
+
+            // [ ] Move the literals in UpdateEnemyBombs
+
+            // [#] CheckIfShipsChangeDirection has been changed so that the evaluation is not just the difference of how old it is, but as intended, how many steps
+
+            //     it took, which is the steps multiplied by the movespeed. movespeed has been added as a tuple value for the List projectileDischarges
+
+            // [#] Added destroyed enemy ships ticker, which will be used for item drops
+
+            // [ ] Consider friendly rockets having health
+
+            // [#] Fix UpdateFriendlyRockets by using LINQ instead of using a foreach statement that breaks when one is removed,
+
+            // [>] Be sure to always use a lock around any statement that modifies a collection
+
+            // [#] Option menu has a path added that leads to a breakpoint location, so the code can be examined any time during gameplay
+
+            // [#] Removal of items from a collection uses LINQ instead of foreach, as foreach runs into exceptions without a funky break tactic
+
+            // [#] Method MaintainDirectionChanges_and_ProjectileDischarges has been created and implemented to remove dictations that are no longer used
+
+            // [#] Create the direction dictations for enemy ships upon deserializing a save file, since there can be enemy ships that are still operational
+
+            //     after a GameRound object has been disposed of. A GameRound object exists as long as it is sending ships, but once it is done sending ships, it
+
+            //     it disposed, while the enemy ships still need dictation which are not all completely loaded if the GameRound is over, and now
+
+            //     Dictation regarding direction changes has been created when a game is loaded, so that the game checks to see the wave number of all the ships,
+
+            //     and create the dictations as needed by calling the GameRound constructor doing so
+
+            // [ ] Create a dictionary <wavenumber, startDate>, and/or also another one called <wavenumber, endDate>, with endDate being startDate + target * frequency
+
+            // [ ] CheckToSeeIfEnemyProjectileGoesOutOfBounds has been fixed so that the requirement for removal is greater than xAxis or yAxis max, but ok at the max
+
+            // [#] Board printing has been tweaked
+
+            // [#] data.xAxis and data.yAxis have been changed to Defaults.xAxis and Defaults.yAxis and the xAxis and yAxis values from Data have been removed
+
+            // [#] Events have been added to Data properties so that we don't need to manually check conditions
+
+            // [#] Numeric literals in UpdateEnemyBombs have been removed and replaced with Data properties
+
+            // [ ] Add levels
+
+            // [#] Remove immunity has been edited so that it checks if the player ship is immune first before checking the turn number, potentially making this
+
+            //     evaluation quicker by allowing the condiiton to short-circuit the latter condition
+
+            // [#] UpdateFriendlyHealthPacks has been tweaked so that the latter updates are only done if health is collected
+
+            // [#] Game.reset and Game.gameLoadedCheck has been configured to trigger events so that we aren't checking if the reset value is true each time, but rather calling the game
+
+            //     reset method when the reset private field is modified
+
+            #endregion
+
+        }
+
+    }
+
+    internal class Game
+
+    {
+
+        #region Game_Fields
+
+        static Data data = new Data();
+
+        static bool asynchronousGameSpeed = false;
+
+        static int loadError = 0;
+
+        static bool saveError = false;
+
+        static bool resetGoAhead = false;
+
+        // the block below contains mostly all the required code for C# events, the only further thing needed is adding the method to the EventHandler
+
+        private static bool _reset;
+
+        bool reset
+
+        {
+
+            get { return _reset; }
+
+            set
+
+            {
+
+                if (_reset == value) { return; }
+
+                _reset = value;
+
+                OnResetChanged(new ResetChangeEventArgs(_reset));
+
+            }
+
+        }
+
+        public class ResetChangeEventArgs : EventArgs
+
+        {
+
+            public readonly bool Reset;
+
+            public ResetChangeEventArgs(bool reset)
+
+            {
+
+                Reset = reset;
+
+            }
+
+        }
+
+        public static event EventHandler<ResetChangeEventArgs> ResetChanged;
+
+        protected virtual void OnResetChanged(ResetChangeEventArgs e)
+
+        {
+
+            ResetChanged?.Invoke(this, e);
+
+        }
+
+        void EventMethodToCall_ResetGame(object sender, ResetChangeEventArgs e)
+
+        {
+
+            if (e.Reset == true)
+
+            {
+
+                gameReset();
+
+            }
+
+        }
+
+        // this is the code for gameLoadedCheck and its event. The method ManuallyDowncastGameRoundObjects attached to the EventHandler is a defined bit further below
+
+        private static bool _gameLoadedCheck;
+
+        bool gameLoadedCheck
+
+        {
+
+            get { return _gameLoadedCheck; }
+
+            set
+
+            {
+
+                if (_gameLoadedCheck == value) { return; }
+
+                _gameLoadedCheck = value;
+
+                OnGameLoadedCheckChanged(new GameLoadedCheckChangeEventArgs(_gameLoadedCheck));
+
+            }
+
+        }
+
+        public class GameLoadedCheckChangeEventArgs : EventArgs
+
+        {
+
+            public readonly bool GameLoadedCheck;
+
+            public GameLoadedCheckChangeEventArgs(bool gameLoadedCheck)
+
+            {
+
+                GameLoadedCheck = gameLoadedCheck;
+
+            }
+
+        }
+
+        public static event EventHandler<GameLoadedCheckChangeEventArgs> GameLoadedCheckChanged;
+
+        protected virtual void OnGameLoadedCheckChanged(GameLoadedCheckChangeEventArgs e)
+
+        {
+
+            GameLoadedCheckChanged?.Invoke(this, e);
+
+        }
+
+        void EventMethodToCall_GameLoadedCheck(object sender, GameLoadedCheckChangeEventArgs e)
+
+        {
+
+            if (e.GameLoadedCheck == true && data.gameRoundObjects.Count >= 1) { lock (data.gameRoundObjects) { ManuallyDowncastGameRoundObjects(); } }
+
+        }
+
+        static bool pauseMode = false;
+
+        static bool optionMode = false;
+
+        static bool speedChangeMode = false;
+
+        static int optionPosition = 1;
+
+        static int optionSelection = 1;
+
+        static string enteredText = "";
+
+        static bool speedChangeError = false;
+
+        static string errorMessage = "";
+
+        static int? errorMessageCode = null;
+
+        static string desktop = Environment.GetFolderPath(Environment.SpecialFolder.Desktop).ToString();
+
+        static string binaryGameSave = @"SaveGameFile.txt";
+
+        static string sourceFile = Path.Combine(desktop, binaryGameSave).ToString();
+
+        static double memoryUsed;
+
+        static List<Task> taskList = new List<Task>();
+
+        static List<(int stage, int steps, int movespeed, Direction direction)> directionChanges = new List<(int, int, int, Direction)>();
+
+        static List<(int stage, int steps, int movespeed, bool command, bool burst)> projectileDischarges =
+
+            new List<(int stage, int steps, int movespeed, bool command, bool burst)>();
+
+        static EventWaitHandle gameHandle = new AutoResetEvent(false);
+
+        internal static KeyWatcher source = new KeyWatcher();
+
+        internal static MySubscriber<ConsoleKey> sub = new MySubscriber<ConsoleKey>();
+
+        #endregion
+
+        #region Game_Constructor_and_Initiation,PauseMenu_*
+
+        #region Event_Trigger_Methods
+
+        void AddEventArgs()
+
+        {
+
+            Data.HealthChanged += data_HealthChanged;
+
+            Data.TurnChanged += data_TurnChanged;
+
+            Game.ResetChanged += EventMethodToCall_ResetGame;
+
+            Game.GameLoadedCheckChanged += EventMethodToCall_GameLoadedCheck;
+
+        }
+
+        static void data_HealthChanged(object sender, HealthChangedEventArgs e)
+
+        {
+
+            if (e.NewHealth <= 0.0)
+
+            {
+
+                data.active = false;
+
+                System.Diagnostics.Debug.WriteLine("EventWorks");
+
+            }
+
+        }
+
+        static void data_TurnChanged(object sender, TurnChangeEventArgs e)
+
+        {
+
+            // we can make a dictionary instead of looping, which is probably faster
+
+            if (e.Turn == Defaults.stageOneStartDateDefault) { lock (data.gameRoundObjects) { data.gameRoundObjects.Add(new RoundOne()); } }
+
+            else if (e.Turn == Defaults.stageTwoStartDateDefault) { lock (data.gameRoundObjects) { data.gameRoundObjects.Add(new RoundTwo()); } }
+
+            else if (e.Turn == Defaults.stageThreeStartDateDefault) { lock (data.gameRoundObjects) { data.gameRoundObjects.Add(new RoundThree()); } }
+
+            else if (e.Turn == Defaults.stageFourStartDateDefault) { lock (data.gameRoundObjects) { data.gameRoundObjects.Add(new RoundFour()); } }
+
+            else if (e.Turn == Defaults.stageFiveStartDateDefault) { lock (data.gameRoundObjects) { data.gameRoundObjects.Add(new RoundFive()); } }
+
+            else if (e.Turn == Defaults.stageSixStartDateDefault) { lock (data.gameRoundObjects) { data.gameRoundObjects.Add(new RoundSix()); } }
+
+            if (e.Turn % 100 == 0) { RemoveDirectionChanges_and_ProjectileDischarges(); }
+
+        }
+
+        void gameReset() // technically not a C# Event though this is a submethod for the event changed method above...
+
+        {
+
+            pauseMode = false;
+
+            reset = false;
+
+            data.active = false;
+
+            SerializationContext current = data.serializationContext;       // temporarily save the context and reload it
+
+            data = new Data();
+
+            data.serializationContext = current;
+
+            resetGoAhead = true;
+
+            // PlayGame();
+
+        }
+
+        static void RemoveDirectionChanges_and_ProjectileDischarges()   // ...and this one too
+
+        {
+
+            List<EnemySpaceShip> superList = new List<EnemySpaceShip>();
+
+            superList.AddRange(data.smallEnemyShipsSet_1);
+
+            superList.AddRange(data.mediumEnemyBomberSet_1);
+
+            superList.AddRange(data.enemyFighters_1);
+
+            var wavesInShipsWeHave = (from ships in superList
+
+                                      select ships.stage).Distinct();
+
+            var dictationsWeCanRemove = from numbers in data.finishedGameRounds
+
+                                        where !wavesInShipsWeHave.Contains(numbers)
+
+                                        select numbers;
+
+            Game.directionChanges = (from dictation in Game.directionChanges
+
+                                     where !dictationsWeCanRemove.Contains(dictation.stage)
+
+                                     select dictation).ToList();
+
+            Game.projectileDischarges = (from dictation in Game.projectileDischarges
+
+                                         where !dictationsWeCanRemove.Contains(dictation.stage)
+
+                                         select dictation).ToList();
+
+        }
+
+        void ManuallyDowncastGameRoundObjects()
+
+        {
+
+            // we need to manually downcast the objects when we deserialize since we need to run the constructor that also creates the
+
+            // direction change dictation and add them to the directionChanges List
+
+            List<GameRounds> updatedRounds = new List<GameRounds>();
+
+            // we need to create each game round object since even after a round is over, the enemy ships might still need directions. a gameround
+
+            // object is disposed once it is no longer *sending* ships, but the ships are still operational even after a game round is technically over
+
+            lock (data.gameRoundObjects)
+
+            {
+
+                foreach (var gameRound in data.gameRoundObjects)
+
+                {
+
+                    if (gameRound.GetType() == typeof(GameRounds))
+
+                    {
+
+                        int wave = gameRound.waveNumber;
+
+                        GameRounds newRound = new GameRounds();
+
+                        DowncastingComponent(wave, ref newRound);
+
+                        newRound.current = gameRound.current;
+
+                        newRound.finished = gameRound.finished;
+
+                        updatedRounds.Add(newRound);
+
+                    }
+
+                }
+
+            }
+
+            RestoreDictations();
+
+            RemoveDirectionChanges_and_ProjectileDischarges();
+
+            lock (data.gameRoundObjects)
+
+            {
+
+                var keepThese = (from gameRound in data.gameRoundObjects
+
+                                 where gameRound.GetType() != typeof(GameRounds)
+
+                                 select gameRound).ToList();  // generaly since all deserialized objects are of type GameRounds and all should be downcasted to a
+
+                                                              // derived type, this should show up as empty
+
+                data.gameRoundObjects = keepThese;
+
+                data.gameRoundObjects.AddRange(updatedRounds);
+
+            }
+
+            gameLoadedCheck = false;
+
+            #region Even_More_Nested_Methods
+
+            static void RestoreDictations()
+
+            {
+
+                List<int> superInts = new List<int>();
+
+                var set1 = (from ships in data.smallEnemyShipsSet_1
+
+                            select ships.stage).Distinct().ToList();
+
+                var set2 = (from ships in data.mediumEnemyBomberSet_1
+
+                            select ships.stage).Distinct().ToList();
+
+                var set3 = (from ships in data.enemyFighters_1
+
+                            select ships.stage).Distinct().ToList();
+
+                superInts.AddRange(set1);
+
+                superInts.AddRange(set2);
+
+                superInts.AddRange(set3);
+
+                foreach (int wave in superInts)
+
+                {
+
+                    GameRounds newRound = new GameRounds();
+
+                    DowncastingComponent(wave, ref newRound);
+
+                }
+
+            }
+
+            static void DowncastingComponent(int wave, ref GameRounds newRound)
+
+            {
+
+                if (wave == 1) { newRound = new RoundOne(); }
+
+                else if (wave == 2) { newRound = new RoundTwo(); }
+
+                else if (wave == 3) { newRound = new RoundThree(); }
+
+                else if (wave == 4) { newRound = new RoundFour(); }
+
+                else if (wave == 5) { newRound = new RoundFive(); }
+
+            }
+
+            #endregion
+
+        }
+
+        #endregion
+
+        public Game()
+
+        {
+
+            // Add the KeyWatcher hot source
+
+            reset = false;
+
+            gameLoadedCheck = false;
+
+            source.Subscribe(sub);
+
+            AskToPlay();
+
+        }
+
+        internal void AskToPlay()
+
+        {
+
+            Console.WriteLine("Tab to switch weapons, bullet/lasers/rockets, esc to cancel");
+
+            Console.WriteLine("Press any key to start!");
+
+            Console.ReadKey(); Console.Clear();
+
+            do
+
+            {
+
+                resetGoAhead = false;
+
+                data.active = true;
+
+                PlayGame();
+
+            }
+
+            while (resetGoAhead);
+
+        }
+
+        internal void PlayGame()
+
+        {
+
+            AddEventArgs();
+
+            Console.CursorVisible = false;
+
+            MainGame();
+
+            /*
+
+            // this is removed since we have made this to be executed with events
+
+            if (reset)
+
+            {
+
+                gameReset();
+
+                PlayGame();
+
+            }
+
+            */
+
+        }
+
+        void MainGame()
+
+        {
+
+            Console.Clear();    // Clearing the Console is time consuming so we only do this once, and instead write over the old prints
+
+            do
+
+            {
+
+                Go();
+
+                if (pauseMode) { PauseMenuReadKey(); }
+
+            } while (data.active);
+
+        }
+
+        static void Go()
+
+        {
+
+            data.theGrid.ClearGrid();       // run this synchronously and block until completed
+
+            if (asynchronousGameSpeed) { Task.WaitAll(SleepTurn(), SingleGameStagePart()); } else { SingleGameStagePart(); }
+
+            Console.SetCursorPosition(0, 0); memoryUsed = GC.GetTotalMemory(true) / 1000.0000; PrintBoard();
+
+        }
+
+        static async Task SleepTurn()
+
+        {
+
+            await Task.Delay(data.speed);
+
+            // not used
+
+            static async Task DoTimer()
+
+            {
+
+                // the code here works. it essentially prints "yeah" after .5 seconds. if ran by itself, it won't finish execution until it does so,
+
+                // and without the timerHandle, the runtime will start the timer and keep on with the execution (and/or finishing) without waiting for the
+
+                // timer to finish
+
+                EventWaitHandle timerHandle = new AutoResetEvent(false);
+
+                System.Timers.Timer tmr = new System.Timers.Timer(500);
+
+                tmr.Elapsed += (sender, e) => { Console.WriteLine("yeah"); timerHandle.Set(); tmr.Dispose(); };
+
+                tmr.Start();
+
+                timerHandle.WaitOne();
+
+            }
+
+            // there seems to be other options such as using AutoResetHandler, Timers.Timer, and Thread.Timer, though they don't particularly make the
+
+            // game faster, and in the case of Timers.Timer, the timing is not consistent while it can be faster, which makes the game look choppy.
+
+            // the game at the time of writing has a data.speed value of 20, so each round ideally takes around 20 ms. Task.Delay does not actually
+
+            // limit the game to exactly 20 ms, it delays the completion of the Task and *maybe later* the runtime will look at the thread and see if a Task
+
+            // has been completed. Timers.Timer will always finish the Task after a set number of ticks, so while we can get the ideal speed value of 20 ms,
+
+            // this is not consistent and causes the game to be less playable. We can make a EventWaitHandler and put that after the Task.Delay, though this
+
+            // does not make the game faster since we are using Task.Delay to begin with still and while it looks fancy to put that, it doesn't accomplish
+
+            // much
+
+        }
+
+        #region Menu_Options
+
+        void PauseMenuReadKey()
+
+        {
+
+            Console.Clear();
+
+            PrintPauseScreen();
+
+            ConsoleKey input = Console.ReadKey().Key;
+
+            if (input == ConsoleKey.S)
+
+            {
+
+                SerializeGameData(data);
+
+                PauseMenuReadKey();
+
+            }
+
+            else if (input == ConsoleKey.L)
+
+            {
+
+                Data newData = new Data();
+
+                newData = DeserializeGameData();
+
+                if (loadError == 0) {
+
+                    data = newData;
+
+                    gameLoadedCheck = true;
+
+                }
+
+                PauseMenuReadKey();
+
+            }
+
+            else if (input == ConsoleKey.P || input == ConsoleKey.B)
+
+            {
+
+                pauseMode = false;
+
+                Console.Clear();
+
+                loadError = 0;
+
+                saveError = false;
+
+            }
+
+            else if (input == ConsoleKey.R)
+
+            {
+
+                reset = true;
+
+                /*
+
+                data.active = false;
+
+                pauseMode = false;
+
+                */
+
+            }
+
+            else if (input == ConsoleKey.O)
+
+            {
+
+                optionMode = true;
+
+                while (optionMode == true)
+
+                {
+
+                    OptionMenuReadKey();
+
+                }
+
+                optionMode = false;
+
+                PauseMenuReadKey();
+
+            }
+
+            else { PauseMenuReadKey(); }
+
+        }
+
+        static void OptionMenuReadKey()
+
+        {
+
+            Console.Clear();
+
+            PrintOptionMenu();
+
+            ConsoleKey input = Console.ReadKey().Key;
+
+            // it can be a little confusing that the higher numbered options are lower
+
+            if (input == ConsoleKey.DownArrow)
+
+            {
+
+                if (optionPosition < 3)
+
+                {
+
+                    optionPosition++;
+
+                }
+
+            }
+
+            if (input == ConsoleKey.UpArrow)
+
+            {
+
+                if (optionPosition > 1)
+
+                {
+
+                    optionPosition--;
+
+                }
+
+            }
+
+            else if (input == ConsoleKey.B) { optionMode = false; }
+
+            else if (input == ConsoleKey.Enter)
+
+            {
+
+                if (optionPosition == 3)
+
+                {
+
+                    optionMode = false;
+
+                    speedChangeMode = true;
+
+                    while (speedChangeMode)
+
+                    {
+
+                        SpeedMenuReadKey();
+
+                    }
+
+                    speedChangeMode = false;
+
+                    optionMode = true;
+
+                }
+
+                else if (optionPosition == 1)
+
+                {
+
+                    optionSelection = optionPosition;
+
+                    data.serializationContext = SerializationContext.JSONNewton;
+
+                }
+
+                else if (optionPosition == 2)
+
+                {
+
+                    optionSelection = optionPosition;
+
+                    data.serializationContext = SerializationContext.Binary;
+
+                }
+
+            }
+
+            else
+
+            {
+
+                // do nothing, let optionMode stay true. not that this code is needed, but to demonstrate for illustration
+
+            }
+
+        }
+
+        static void SpeedMenuReadKey()
+
+        {
+
+            Console.Clear();
+
+            PrintSpeedChangeMenu();
+
+            string input = Console.ReadKey().KeyChar.ToString();
+
+            string first = string.Empty;
+
+            if (input.ToUpper() == "B") { speedChangeMode = false; }
+
+            else
+
+            {
+
+                first = input.ToString();
+
+                string second = Console.ReadLine();
+
+                enteredText = first + second;
+
+                int temp = data.speed;
+
+                try
+
+                {
+
+                    int output = 0;
+
+                    speedChangeError = !Int32.TryParse(enteredText, out output);
+
+                    data.speed = output;
+
+                    if (enteredText == "xmine")
+
+                    {
+
+                        int breakpoint = 1; // insert breakpoint here to examine the code during game for testing purposes
+
+                    }
+
+                    if (enteredText == "print")
+
+                    {
+
+                        PrintBoard();
+
+                        Console.WriteLine("press any key to go back");
+
+                        Console.ReadKey();
+
+                    }
+
+                }
+
+                catch (Exception e)
+
+                {
+
+                    Console.WriteLine("did not work but this also does not get printed");
+
+                    speedChangeError = true;
+
+                }
+
+                finally { if (speedChangeError) { data.speed = temp; } }
+
+            }
+
+        }
+
+        #endregion
+
+        #endregion
+
+        #region Game_Round_Methods_*
+
+        #region Play_Game_and_Update_Rounds
+
+        static async Task SingleGameStagePart()
+
+        {
+
+            data.t1 = data.t2; data.t2 = DateTime.Now;
+
+            source.Run();
+
+            AddFriendlyProjectiles();
+
+            UpdateFriendlyProjectiles();
+
+            // if (gameLoadedCheck == true && data.gameRoundObjects.Count >= 1) { lock (data.gameRoundObjects) { ManuallyDowncastGameRoundObjects(); } }
+
+            // this has been moved to the Event fired method
+
+            Run_GameRounds();
+
+            // RemoveDirectionChanges_and_ProjectileDischarges();       // this has been moved to the Event fired method
+
+            RemoveFinishedGameRoundObjects();
+
+            UpdateEnemyWaves();
+
+            RemoveImmunity();
+
+            if (data.active) { data.turns++; }
+
+            if (!asynchronousGameSpeed) { Thread.Sleep(data.speed); }  // only while we arent running this method/Task asynchronously
+
+            #region Nested_Methods
+
+            static void AddFriendlyProjectiles()
+
+            {
+
+                Task.WaitAll(
+
+                AddFriendlyBullets(),
+
+                AddFriendlyLasers(),
+
+                AddFriendlyRocket()
+
+                );
+
+            }
+
+            static void UpdateFriendlyProjectiles()
+
+            {
+
+                Task.WaitAll(
+
+                UpdateFriendlyBullets(),
+
+                UpdateFriendlyRocket(),
+
+                UpdateFriendlyHealthPacks()
+
+            );
+
+            }
+
+            static void Run_GameRounds()
+
+            {
+
+                foreach (var gameRound in data.gameRoundObjects) { lock (data.gameRoundObjects) { taskList.Add(gameRound.Run()); } }
+
+                Task.WaitAll(taskList.ToArray());   // run each Run method, and block until finished
+
+                taskList.Clear();
+
+            }
+
+            static void RemoveFinishedGameRoundObjects()
+
+            {
+
+                lock (data.gameRoundObjects)
+
+                {
+
+                    // we will save the GameRounds that are finished
+
+                    foreach (GameRounds round in data.gameRoundObjects)
+
+                    {
+
+                        if (round.finished == true)
+
+                        {
+
+                            data.finishedGameRounds.Add(round.waveNumber);
+
+                        }
+
+                    }
+
+                    data.gameRoundObjects = (from rounds in data.gameRoundObjects
+
+                                             where !rounds.finished
+
+                                             select rounds).ToList();
+
+                }
+
+            }
+
+            static void UpdateEnemyWaves()
+
+            {
+
+                // we don't do this asynchronously, ships shoot before we update their projectiles
+
+                UpdateEnemyShips();
+
+                UpdateEnemyProjectiles();
+
+                static void UpdateEnemyShips()
+
+                {
+
+                    Task.WaitAll(UpdateEnemyShuttleMini_MoveOrShoot(), UpdateEnemyBomberWave_MoveOrShoot(), UpdateEnemyFighterWave_MoveOrShoot());
+
+                }
+
+                static void UpdateEnemyProjectiles()
+
+                {
+
+                    Task.WaitAll(UpdateEnemyBullets(), UpdateEnemyBombs(), UpdateEnemyMissile());
+
+                }
+
+            }
+
+            static void RemoveImmunity()
+
+            {
+
+                if (data.immune && data.turns - 5 == data.immunityBirthdate) { data.immune = false; }
+
+            }
+
+            #endregion 
+
+        }
+
+        #endregion
+
+        #region Rounds,Numbered
+
+        [Serializable]
+
+        public class RoundOne : GameRounds
+
+        {
+
+            public RoundOne() { SetConstants(); }
+
+            public override async Task Run()
+
+            {
+
+                RunGeneric(AddEnemyShuttleMini, stage: waveNumber, data.turns,
+
+                xAxisStart: 1, yAxisStart: Defaults.yAxis - 2, Direction.Right);
+
+            }
+
+            [OnDeserialized()]  // this is also called during Json deserialization
+
+            public void ResetConstants(StreamingContext context) { SetConstants(); }
+
+            public void SetConstants()
+
+            {
+
+                // every GameRound needs at least the statements below...
+
+                data.shipStartDates.Add(Defaults.stageOneStartDateDefault);
+
+                waveNumber = 1; target = Defaults.stageOneTargetDefault; current = 0;
+
+                sendFrequency = Defaults.stageOneEnemyShuttleWaveSendFrequency_1Default; moveSpeed = Defaults.stageOneEnemyShuttleMoveSpeed_1Default;
+
+                primaryShootingFrequency = Defaults.stageOneEnemyShuttlePrimaryShootingFrequencyDefault;
+
+                secondaryShootingFrequency = Defaults.stageOneEnemyShuttleSecondaryShootingFrequencyDefault;
+
+                (int stage, int steps, int movespeed, bool command, bool burst) stage1projectiles = (waveNumber, 5, moveSpeed, false, false);
+
+                projectileDischarges.Add(stage1projectiles); // ... up to here. we can lock this statement but for now i'm going to disregard that
+
+            }
+
+        }
+
+        [Serializable]
+
+        public class RoundTwo : GameRounds
+
+        {
+
+            public RoundTwo() { SetConstants(); }
+
+            public override async Task Run()
+
+            {
+
+                RunGeneric(AddEnemyBomber, stage: waveNumber, turns: data.turns,
+
+                xAxisStart: 70, yAxisStart: Defaults.yAxis, Direction.DiaganolDownLeft);
+
+            }
+
+            [OnDeserialized()]
+
+            public void ResetConstants(StreamingContext context) { SetConstants(); }
+
+            public void SetConstants()
+
+            {
+
+                data.shipStartDates.Add(Defaults.stageTwoStartDateDefault);
+
+                waveNumber = 2; target = Defaults.stageTwoTargetDefault; current = 0;
+
+                sendFrequency = Defaults.stageTwoEnemyBomberWaveSendFrequency_1Default; moveSpeed = Defaults.stageTwoEnemyBomberMoveSpeed_1Default;
+
+                primaryShootingFrequency = Defaults.stageTwoEnemyBomberPrimaryBombingFrequencyDefault;
+
+                (int stage, int steps, int movespeed, bool command, bool burst) stage2projectiles = (waveNumber, 5, moveSpeed, false, false);
+
+                projectileDischarges.Add(stage2projectiles);
+
+                (int stage, int steps, int movespeed, Direction direction) round2turn1 = (waveNumber, 10, moveSpeed, Direction.Left);
+
+                directionChanges.Add(round2turn1);
+
+                (int stage, int steps, int movespeed, Direction direction) round2turn2 = (waveNumber, 60, moveSpeed, Direction.DiaganolUpLeft);
+
+                directionChanges.Add(round2turn2);
+
+            }
+
+        }
+
+        [Serializable]
+
+        public class RoundThree : GameRounds
+
+        {
+
+            public RoundThree() { SetConstants(); }
+
+            public override async Task Run()
+
+            {
+
+                RunGeneric(AddEnemyFighter, stage: waveNumber, turns: data.turns,
+
+                xAxisStart: 2, yAxisStart: Defaults.yAxis, Direction.DiaganolDownRight);
+
+            }
+
+            [OnDeserialized()]
+
+            public void ResetConstants(StreamingContext context) { SetConstants(); }
+
+            public void SetConstants()
+
+            {
+
+                data.shipStartDates.Add(Defaults.stageThreeStartDateDefault);
+
+                waveNumber = 3; target = Defaults.stageThreeTargetDefault; current = 0;
+
+                sendFrequency = Defaults.stageThreeEnemyFighterWaveSendFrequency_1Default; moveSpeed = Defaults.stageThreeEnemyFighterMoveSpeed_1Default;
+
+                primaryShootingFrequency = Defaults.stageThreeEnemyFighterPrimaryMisslingFrequency;
+
+                (int stage, int steps, int movespeed, bool command, bool burst) stage3projectiles = (waveNumber, 5, moveSpeed, false, false);
+
+                projectileDischarges.Add(stage3projectiles);
+
+                (int stage, int steps, int movespeed, Direction direction) round3turn1 = (waveNumber, 11, moveSpeed, Direction.Right);
+
+                directionChanges.Add(round3turn1);
+
+                (int stage, int steps, int movespeed, Direction direction) round3turn2 = (waveNumber, 50, moveSpeed, Direction.DiaganolDownRight);
+
+                directionChanges.Add(round3turn2);
+
+                (int stage, int steps, int movespeed, Direction direction) round3turn3 = (waveNumber, 53, moveSpeed, Direction.Down);
+
+                directionChanges.Add(round3turn3);
+
+                (int stage, int steps, int movespeed, Direction direction) round3turn4 = (waveNumber, 56, moveSpeed, Direction.DiaganolDownLeft);
+
+                directionChanges.Add(round3turn4);
+
+                (int stage, int steps, int movespeed, Direction direction) round3turn5 = (waveNumber, 59, moveSpeed, Direction.Left);
+
+                directionChanges.Add(round3turn5);
+
+            }
+
+        }
+
+        [Serializable]
+
+        public class RoundFour : GameRounds
+
+        {
+
+            public RoundFour() { SetConstants(); }
+
+            public override async Task Run()
+
+            {
+
+                RunGeneric(AddEnemyFighter, stage: waveNumber, turns: data.turns,
+
+                xAxisStart: 2, yAxisStart: 1, Direction.Up);
+
+            }
+
+            [OnDeserialized()]
+
+            public void ResetConstants(StreamingContext context) { SetConstants(); }
+
+            public void SetConstants()
+
+            {
+
+                data.shipStartDates.Add(Defaults.stageFourStartDateDefault);
+
+                waveNumber = 4; target = Defaults.stageFourTargetDefault; current = 0;
+
+                sendFrequency = Defaults.stageFourEnemyFighterWaveSendFrequency_1Default; moveSpeed = Defaults.stageFourEnemyFighterMoveSpeed_1Default;
+
+                primaryShootingFrequency = Defaults.stageFourEnemyFighterPrimaryMisslingFrequency;
+
+                (int stage, int steps, int movespeed, bool command, bool burst) stage4projectiles = (waveNumber, 30, moveSpeed, false, false);
+
+                projectileDischarges.Add(stage4projectiles);
+
+                (int stage, int steps, int movespeed, Direction direction) round4turn1 = (waveNumber, 40, moveSpeed, Direction.DiaganolUpRight);
+
+                directionChanges.Add(round4turn1);
+
+                (int stage, int steps, int movespeed, Direction direction) round4turn2 = (waveNumber, 55, moveSpeed, Direction.Right);
+
+                directionChanges.Add(round4turn2);
+
+            }
+
+        }
+
+        [Serializable]
+
+        public class RoundFive : GameRounds
+
+        {
+
+            public RoundFive() { SetConstants(); }
+
+            public override async Task Run()
+
+            {
+
+                RunGeneric(AddEnemyFighter, stage: waveNumber, turns: data.turns,
+
+                xAxisStart: Defaults.xAxis - 1, yAxisStart: 1, Direction.Up);
+
+            }
+
+            [OnDeserialized()]
+
+            public void ResetConstants(StreamingContext context) { SetConstants(); }
+
+            public void SetConstants()
+
+            {
+
+                data.shipStartDates.Add(Defaults.stageFiveStartDateDefault);
+
+                waveNumber = 5; target = Defaults.stageFiveTargetDefault; current = 0;
+
+                sendFrequency = Defaults.stageFiveEnemyFighterWaveSendFrequency_1Default; moveSpeed = Defaults.stageFiveEnemyFighterMoveSpeed_1Default;
+
+                primaryShootingFrequency = Defaults.stageFiveEnemyFighterPrimaryMisslingFrequency;
+
+                (int stage, int steps, int movespeed, bool command, bool burst) stage5projectiles = (waveNumber, 5, moveSpeed, false, false);
+
+                projectileDischarges.Add(stage5projectiles);
+
+                (int stage, int steps, int movespeed, Direction direction) round5turn1 = (waveNumber, 40, moveSpeed, Direction.DiaganolUpLeft);
+
+                directionChanges.Add(round5turn1);
+
+                (int stage, int steps, int movespeed, Direction direction) round5turn2 = (waveNumber, 54, moveSpeed, Direction.Left);
+
+                directionChanges.Add(round5turn2);
+
+            }
+
+        }
+
+        [Serializable]
+
+        public class RoundSix : GameRounds
+
+        {
+
+            public RoundSix() { SetConstants(); }
+
+            public override async Task Run()
+
+            {
+
+                RunGeneric(AddEnemyFighter, stage: waveNumber, turns: data.turns,
+
+                xAxisStart: 11, yAxisStart: Defaults.yAxis - 1, Direction.DiaganolDownRight);
+
+            }
+
+            [OnDeserialized()]
+
+            public void ResetConstants(StreamingContext context) { SetConstants(); }
+
+            public void SetConstants()
+
+            {
+
+                data.shipStartDates.Add(Defaults.stageSixStartDateDefault);
+
+                waveNumber = 6; target = Defaults.stageSixTargetDefault; current = 0;
+
+                sendFrequency = Defaults.stageSixEnemyFighterWaveSendFrequency_1Default; moveSpeed = Defaults.stageSixEnemyFighterMoveSpeed_1Default;
+
+                primaryShootingFrequency = Defaults.stageSixEnemyFighterPrimaryMisslingFrequency;
+
+                (int stage, int steps, int movespeed, bool command, bool burst) stage6projectiles = (waveNumber, 11, moveSpeed, false, false);
+
+                projectileDischarges.Add(stage6projectiles);
+
+                (int stage, int steps, int movespeed, Direction direction) round6turn1 = (waveNumber, 11, moveSpeed, Direction.Right);
+
+                directionChanges.Add(round6turn1);
+
+                (int stage, int steps, int movespeed, Direction direction) round6turn2 = (waveNumber, 38, moveSpeed, Direction.DiaganolUpRight);
+
+                directionChanges.Add(round6turn2);
+
+            }
+
+        }
+
+        #endregion
+
+        #region Adding_Enemy_Ship_Waves
+
+        static void AddEnemyShuttleMini(int stage, int xAxis, int yAxis, Direction direction, int moveSpeed, int primaryShootingSpeed, int secondaryShootingSpeed)
+
+        {
+
+            var newShip = new EnemyShuttle(stage, EnemyLevel.Small, data.turns, xAxis, yAxis, outOfBounds: true, direction,
+
+                                            moveSpeed: moveSpeed, primaryShootingSpeed, secondaryShootingSpeed,
+
+                                            weaponOfChoice: Contents.EnemyBullet);
+
+            lock (data.smallEnemyShipsSet_1)
+
+            {
+
+                data.smallEnemyShipsSet_1.Add(newShip);
+
+            }
+
+            //
+
+            //      @
+
+            //
+
+        }
+
+        static void AddEnemyBomber(int stage, int xAxis, int yAxis, Direction direction, int moveSpeed, int primaryShootingSpeed, int secondaryShootingSpeed)
+
+        {
+
+            var newShip = new EnemyBomber(stage, EnemyLevel.Medium, data.turns, xAxis, yAxis, outOfBounds: true, direction,
+
+                                            speed: moveSpeed, primaryShootingSpeed, secondaryShootingSpeed,
+
+                                            weaponOfChoice: Contents.EnemyBomb);
+
+            lock (data.mediumEnemyBomberSet_1)
+
+            {
+
+                data.mediumEnemyBomberSet_1.Add(newShip);
+
+            }
+
+            //      
+
+            //       /-\
+
+            //        
+
+        }
+
+        static void AddEnemyFighter(int stage, int xAxis, int yAxis, Direction direction, int moveSpeed, int primaryShootingSpeed, int secondaryShootingSpeed)
+
+        {
+
+            var newShip = new EnemyFighter(stage, EnemyLevel.Small, data.turns, xAxis, yAxis, outOfBounds: true, direction,
+
+                                            speed: moveSpeed, primaryShootingSpeed, secondaryShootingSpeed,
+
+                                            weaponOfChoice: Contents.EnemyMissile);
+
+            lock (data.enemyFighters_1)
+
+            {
+
+                data.enemyFighters_1.Add(newShip);
+
+            }
+
+            //
+
+            //      \_/
+
+            //
+
+        }
+
+        #endregion
+
+        #endregion
+
+        #region General_Items_Update_*
+
+        #region General_Item_Position_Update
+
+        static void UpdatePositionGeneral(Items item, Direction direction)
+
+        {
+
+            switch (direction)
+
+            {
+
+                case Direction.Right: item.x++; break;
+
+                case Direction.Left: item.x--; break;
+
+                case Direction.Down: item.y--; break;
+
+                case Direction.DiaganolDownLeft: item.y--; item.x--; break;
+
+                case Direction.DiaganolDownRight: item.y--; item.x++; break;
+
+                case Direction.Up: item.y++; break;
+
+                case Direction.DiaganolUpLeft: item.y++; item.x--; break;
+
+                case Direction.DiaganolUpRight: item.y++; item.x++; break;
+
+            }
+
+        }
+
+        #endregion
+
+        #region General_Enemy_Items_Update
+
+        static void EnemyTakingDamage(EnemyItems item)
+
+        {
+
+            Task.WaitAll(
+
+                CheckToSeeIfHitByFriendlyBullet(item),
+
+                CheckToSeeIfHitByFriendlyLaser(item),
+
+                CheckToSeeIfHitByFriendlyRocket(item)
+
+            );
+
+            #region Nested_Methods
+
+            static async Task CheckToSeeIfHitByFriendlyBullet(EnemyItems item)
+
+            {
+
+                // check to see if hit by friendly bullet
+
+                int sideWidth = (item.width - 1) / 2;
+
+                bool foundOne = false;
+
+                if (item.lastBulletHit != data.turns)
+
+                {
+
+                    for (int i = -sideWidth; i <= sideWidth; i++)
+
+                    {
+
+                        if (data.theGrid[item.x + i, item.y] == Contents.Bullet)
+
+                        {
+
+                            foundOne = true;
+
+                            break;      // we can break out of here since the purpose is met if we found one. we are checking if an enemy ship is hit at all
+
+                        }
+
+                    }
+
+                    // we remove all friendly bullets from the game that hit an enemy ship if it is hit "by one"
+
+                    if (foundOne)
+
+                    {
+
+                        item.health -= data.friendlyLinearProjectileDamage;
+
+                        item.lastBulletHit = data.turns;
+
+                        lock (data.friendlyBullets)
+
+                        {
+
+                            data.friendlyBullets = (from bullets in data.friendlyBullets
+
+                                                    where !(
+
+                                                            (item.x - sideWidth) <= bullets.x &&
+
+                                                            bullets.x <= (item.x + sideWidth) &&
+
+                                                            (bullets.y == item.y)
+
+                                                            )
+
+                                                    select bullets).ToList();
+
+                        }
+
+                    }
+
+                }
+
+            }
+
+            static async Task CheckToSeeIfHitByFriendlyLaser(EnemyItems item)
+
+            {
+
+                // check to see if hit by friendly laser
+
+                if (data.theGrid[item.x, item.y] == Contents.Laser)
+
+                {
+
+                    if (item.lastLaserHit != data.turns)
+
+                    {
+
+                        item.health -= data.friendlyLaserDamage;
+
+                        item.lastLaserHit = data.turns;
+
+                    }
+
+                }
+
+            }
+
+            static async Task CheckToSeeIfHitByFriendlyRocket(EnemyItems item)
+
+            {
+
+                bool going = true;
+
+                int widthCheck = item.width / 2 + 1;
+
+                int heightCheck = item.height / 2 + 1;
+
+                for (int a = -widthCheck; a <= widthCheck; a++)
+
+                {
+
+                    if (!going) { break; }
+
+                    for (int b = /* -heightCheck */ 0; b <= heightCheck; b++)
+
+                    {
+
+                        // instead of checking if we have contact if the rocket is one unit below, it's less confusing if they have to at least have the
+
+                        // same y coordinate or more
+
+                        if (!going) { break; }
+
+                        if (data.theGrid[Math.Abs(item.x + a), Math.Abs(item.y + b)] == Contents.Rocket)
+
+                        {
+
+                            if (item.lastRocketHit != data.turns)
+
+                            {
+
+                                item.health -= data.friendlyRocketDamage;
+
+                                item.lastRocketHit = data.turns;
+
+                                going = false;
+
+                                // this is so that if we found a rocket, we don't keep looking for one,
+
+                            }
+
+                            int xVar = item.x + a;
+
+                            int yVar = item.y + b;
+
+                            lock (data.friendlyRockets)
+
+                            {
+
+                                data.friendlyRockets = (from rockets in data.friendlyRockets
+
+                                                        where !((rockets.x == xVar) && (rockets.y == yVar))
+
+                                                        select rockets).ToList();
+
+                            }
+
+                        }
+
+                    }
+
+                }
+
+            }
+
+            #endregion
+
+        }
+
+        static void Update_EnemyItem_Position(EnemyItems enemyItem, Direction direction)
+
+        {
+
+            UpdatePositionGeneral(enemyItem, direction);
+
+        }   // we might not need this method
+
+        #endregion
+
+        #region General_Enemy_Spaceship_Updates
+
+        static void UpdateEnemyShipDestroyed_OrOutOfBounds(List<EnemySpaceShip> enemyShipsList)
+
+        {
+
+            // this method is ran once at the start of udpating the enemy ships, and ran again a second time at the end of updating enemy ships, so that
+
+            // there will be contact always, after the updating of friendly projectiles and after moving the enemy ship
+
+            lock (enemyShipsList)
+
+            {
+
+                foreach (var enemyShip in enemyShipsList) { EnemyTakingDamage(enemyShip); }
+
+            }
+
+            // Parallel.ForEach(enemyShipsList, EnemyTakingDamage);     // this is not efficient
+
+            // if the ships goes out of bounds
+
+            // outOfBounds is a bool that indicates if a ship should be removed if it goes
+
+            // goes out of bounds. alternatively, ships can move out of the grid and come back
+
+            var outOfBoundsShips = (from enemyships in enemyShipsList
+
+                                    where (
+
+                                            (enemyships.x > Defaults.xAxis
+
+                                                || enemyships.x < 1
+
+                                                || enemyships.y < 1
+
+                                                || enemyships.y > Defaults.yAxis
+
+                                            )
+
+                                            && enemyships.outOfBounds == true
+
+                                        )
+
+                                    // || enemyships.health <= 0
+
+                                    select enemyships).ToArray();
+
+            foreach (var enemyship in outOfBoundsShips)
+
+            {
+
+                lock (enemyShipsList)
+
+                {
+
+                    enemyShipsList.Remove(enemyship);
+
+                }
+
+                data.removedEnemyShips++;
+
+            }
+
+            // if the ship gets shot down
+
+            var destroyedShips = (from enemyships in enemyShipsList
+
+                                  where enemyships.health <= 0
+
+                                  select enemyships).ToArray();
+
+            
+
+            foreach (var enemyship in destroyedShips)
+
+            {
+
+                data.looseChange++;
+
+                if (data.looseChange == Defaults.LooseChangeNeededForHealthDrop)
+
+                {
+
+                    AddHealthDrop(enemyship.x, enemyship.y, Defaults.HealthPackSpeed);
+
+                    data.looseChange = 0;
+
+                }
+
+                lock (enemyShipsList)
+
+                {
+
+                    enemyShipsList.Remove(enemyship);
+
+                }
+
+                data.destroyedEnemyShips++;
+
+                    
+
+            }
+
+        }
+
+        static void CheckIfShipsMove<T>(List<T> listOfEnemyShips) where T : EnemyItems
+
+        {
+
+            lock (listOfEnemyShips)
+
+            {
+
+                foreach (EnemyItems ship in listOfEnemyShips)
+
+                {
+
+                    if ((data.turns - ship.birthdate) % ship.moveSpeed == 0)
+
+                    {
+
+                        Update_EnemyItem_Position(ship, ship.direction);
+
+                    }
+
+                    data.theGrid[ship.x, ship.y] = ship.content;
+
+                }
+
+            }
+
+        }
+
+        static void CheckIfShipsShoot<T>(List<T> listOfEnemyShips) where T : EnemySpaceShip
+
+        {
+
+            // we don't need to lock this since we are not writing or removing from the List, but merely reading it
+
+            foreach (EnemySpaceShip ship in listOfEnemyShips)
+
+            {
+
+                foreach (var dicatation in projectileDischarges)
+
+                {
+
+                    // shooting repeatedly, cyclically
+
+                    if (ship.stage == dicatation.stage && !dicatation.command)
+
+                    {
+
+                        if (data.turns - ship.birthdate > dicatation.steps * dicatation.movespeed)
+
+                        {
+
+                            if (data.turns % ship.primaryShootingSpeed == 0)
+
+                            {
+
+                                Shoot(ship);
+
+                            }
+
+                        }
+
+                    }
+
+                    // shooting on command
+
+                    if (ship.stage == dicatation.stage && dicatation.command)
+
+                    {
+
+                        if (data.turns - ship.birthdate == dicatation.steps)
+
+                        {
+
+                            Shoot(ship);
+
+                        }
+
+                    }
+
+                    // we should also make an option for shooting repeatedly on command and shooting cyclically, such as a burst every 20 moves
+
+                }
+
+            }
+
+            static void Shoot(EnemySpaceShip ship)
+
+            {
+
+                if (ship.weaponOfChoice == Contents.EnemyBullet) { AddEnemyBullet(ship.x, ship.y); }
+
+                else if (ship.weaponOfChoice == Contents.EnemyBomb) { AddEnemyBomb(ship.x, ship.y); }
+
+                else if (ship.weaponOfChoice == Contents.EnemyMissile) { AddEnemyMissile(ship.x, ship.y); }
+
+            }
+
+        }
+
+        static void CheckIfShipsChangeDirection<T>(List<T> listOfEnemyShips) where T : EnemySpaceShip
+
+        {
+
+            foreach (var enemyShip in listOfEnemyShips)
+
+            {
+
+                foreach (var dictation in directionChanges)
+
+                {
+
+                    if (enemyShip.stage == dictation.stage)
+
+                    {
+
+                        if ((data.turns - enemyShip.birthdate) == (dictation.steps * dictation.movespeed))
+
+                        {
+
+                            enemyShip.direction = dictation.direction;
+
+                        }
+
+                    }
+
+                }
+
+            }
+
+        }
+
+        static async Task UpdateEnemyShuttleMini_MoveOrShoot()
+
+        {
+
+            UpdateEnemyShipDestroyed_OrOutOfBounds(data.smallEnemyShipsSet_1);
+
+            CheckIfShipsMove(data.smallEnemyShipsSet_1);
+
+            CheckIfShipsShoot(data.smallEnemyShipsSet_1);
+
+            UpdateEnemyShipDestroyed_OrOutOfBounds(data.smallEnemyShipsSet_1);
+
+        }
+
+        static async Task UpdateEnemyBomberWave_MoveOrShoot()
+
+        {
+
+            UpdateEnemyShipDestroyed_OrOutOfBounds(data.mediumEnemyBomberSet_1);
+
+            CheckIfShipsChangeDirection(data.mediumEnemyBomberSet_1);
+
+            CheckIfShipsMove(data.mediumEnemyBomberSet_1);
+
+            CheckIfShipsShoot(data.mediumEnemyBomberSet_1);
+
+            UpdateEnemyShipDestroyed_OrOutOfBounds(data.mediumEnemyBomberSet_1);
+
+        }
+
+        static async Task UpdateEnemyFighterWave_MoveOrShoot()
+
+        {
+
+            UpdateEnemyShipDestroyed_OrOutOfBounds(data.enemyFighters_1);
+
+            CheckIfShipsChangeDirection(data.enemyFighters_1);
+
+            CheckIfShipsMove(data.enemyFighters_1);
+
+            CheckIfShipsShoot(data.enemyFighters_1);
+
+            UpdateEnemyShipDestroyed_OrOutOfBounds(data.enemyFighters_1);
+
+        }
+
+        #endregion
+
+        #region Enemy_Projectiles_Updates
+
+        static void UpdateEnemyProjectiles_GeneralRemove<T>(List<T> projectilesList, Contents projectileType) where T : EnemyProjectile
+
+        {
+
+            // enemy item checks to see if they take damage again a second time after they have been moved. This is done in the method that calls this one
+
+            foreach (var projectile in projectilesList) { EnemyTakingDamage(projectile); }
+
+            // Parallel.ForEach(projectilesList, EnemyTakingDamage);        // this is not efficient
+
+            // check if the enemy projectile should be removed
+
+            Task.WaitAll(
+
+                CheckToSeeIfEnemyProjectileHitsPlayerShip(projectilesList, projectileType),
+
+                CheckToSeeIfEnemyProjectileGoesOutOfBounds(projectilesList),
+
+                CheckToSeeIfEnemyProjectileHasZeroHealth(projectilesList)
+
+            );
+
+            // otherwise add the enemy projectile to the grid
+
+            foreach (var projectile in projectilesList) { data.theGrid[projectile.x, projectile.y] = projectileType; }
+
+            // Parallel.ForEach(projectilesList, projectile => { data.theGrid[projectile.x, projectile.y] = projectileType; } );
+
+            // this is what it would look like, when we pass a lambda expression as a delegate
+
+            #region Nested Methods
+
+            static async Task CheckToSeeIfEnemyProjectileHitsPlayerShip(List<T> projectilesList, Contents projectileType)
+
+            {
+
+                // if an enemy bullet hits player ship
+
+                var removeProjectileHitShip = (from projectiles in projectilesList
+
+                                               where (
+
+                                                       projectiles.x == data.currentPositionX
+
+                                                       // since user player ship has a total width of 3
+
+                                                       || projectiles.x - 1 == data.currentPositionX
+
+                                                       || projectiles.x + 1 == data.currentPositionX
+
+                                                       // if the projectile that hits the player ship is a rocket, can miss by 1 unit
+
+                                                       || (projectiles.x + 2 == data.currentPositionX) && projectileType == Contents.EnemyBomb
+
+                                                       || (projectiles.x - 2 == data.currentPositionX) && projectileType == Contents.EnemyBomb
+
+                                                       )
+
+                                                       && projectiles.y == data.currentPositionY
+
+                                               select projectiles).ToArray();
+
+                foreach (var projectile in removeProjectileHitShip)
+
+                {
+
+                    if (!data.immune)
+
+                    {
+
+                        data.immunityBirthdate = data.turns;
+
+                        data.health--;
+
+                        data.immune = true;
+
+                        break;
+
+                    }
+
+                }
+
+                // this should not cause an exception since the variable passed, removeProjectileHitShip is not being modified
+
+                try
+
+                {
+
+                    foreach (var projectile in removeProjectileHitShip)
+
+                    {
+
+                        lock (projectilesList)
+
+                        {
+
+                            projectilesList.Remove(projectile);
+
+                        }
+
+                        data.removedEnemyProjectiles++;
+
+                    }
+
+                }
+
+                catch (Exception e)
+
+                {
+
+                    errorMessage = $"Error removing player ship hitting projectile on turn {data.turns}";
+
+                    errorMessageCode = 1095;
+
+                }
+
+            }
+
+            static async Task CheckToSeeIfEnemyProjectileGoesOutOfBounds(List<T> projectilesList)
+
+            {
+
+                // if an enemy bullet goes out of bounds
+
+                var removeProjectile = (from projectile in projectilesList
+
+                                        where projectile.y <= 0
+
+                                           // added the out-of-bounds checking on the top side
+
+                                           || projectile.y > Defaults.yAxis
+
+                                           || projectile.x <= 0
+
+                                           || projectile.x > Defaults.xAxis
+
+                                        select projectile).ToArray();
+
+                try // same thing
+
+                {
+
+                    foreach (var projectile in removeProjectile)
+
+                    {
+
+                        lock (projectilesList)
+
+                        {
+
+                            projectilesList.Remove(projectile);
+
+                        }
+
+                        data.removedEnemyProjectiles++;
+
+                    }
+
+                }
+
+                catch (Exception e)
+
+                {
+
+                    errorMessage = $"Error removing out of bounds projectile on turn {data.turns}";
+
+                    errorMessageCode = 1125;
+
+                }
+
+            }
+
+            static async Task CheckToSeeIfEnemyProjectileHasZeroHealth(List<T> projectilesList)
+
+            {
+
+                // if an enemy projectile/rocket has zero health
+
+                var removeZeroHealthProjectile = (from projectile in projectilesList
+
+                                                  where projectile.health <= 0
+
+                                                  select projectile).ToArray();
+
+                try // same thing
+
+                {
+
+                    foreach (var projectile in removeZeroHealthProjectile)
+
+                    {
+
+                        lock (projectilesList)
+
+                        {
+
+                            projectilesList.Remove(projectile);
+
+                        }
+
+                        data.removedEnemyProjectiles++;
+
+                    }
+
+                }
+
+                catch (Exception e)
+
+                {
+
+                    errorMessage = $"Error removing zero health projectile on turn {data.turns}";
+
+                    errorMessageCode = 1151;
+
+                }
+
+            }
+
+            #endregion
+
+        }
+
+        static async Task AddEnemyBullet(int xAxis, int yAxis)
+
+        {
+
+            var newEnemyBullet = new EnemyBullet(data.turns, xAxis, yAxis, direction: Direction.Down, data.enemyBulletSpeed_1);
+
+            lock (data.enemyBulletsList)
+
+            {
+
+                data.enemyBulletsList.Add(newEnemyBullet);
+
+            }
+
+        }
+
+        static async Task AddEnemyBomb(int xAxis, int yAxis)
+
+        {
+
+            var newEnemyBomb = new EnemyBomb(data.turns, xAxis, yAxis, direction: Direction.Down, data.enemyBombSlowSpeed, data.enemyBombFastSpeed);
+
+            lock (data.enemyBombList)
+
+            {
+
+                data.enemyBombList.Add(newEnemyBomb);
+
+            }
+
+        }
+
+        static async Task AddEnemyMissile(int xAxis, int yAxis)
+
+        {
+
+            var newEnemyMissile = new EnemyMissile(data.turns, xAxis, yAxis, direction: Direction.Down, speed: data.enemyMissileSpeed);
+
+            lock (data.enemyMissileList)
+
+            {
+
+                data.enemyMissileList.Add(newEnemyMissile);
+
+            }
+
+        }
+
+        static async Task UpdateEnemyBullets()
+
+        {
+
+            UpdateEnemyProjectiles_GeneralRemove<EnemyBullet>(data.enemyBulletsList, projectileType: Contents.EnemyBullet);
+
+            // move each enemy bullet
+
+            foreach (EnemyBullet bullet in data.enemyBulletsList)
+
+            {
+
+                if ((data.turns - bullet.birthdate) % bullet.moveSpeed == 0)
+
+                {
+
+                    Update_EnemyItem_Position(bullet, bullet.direction);
+
+                }
+
+                EnemyTakingDamage(bullet);
+
+            }
+
+        }
+
+        static async Task UpdateEnemyBombs()
+
+        {
+
+            UpdateEnemyProjectiles_GeneralRemove<EnemyBomb>(data.enemyBombList, projectileType: Contents.EnemyBomb);
+
+            // move each enemy rocket
+
+            foreach (EnemyBomb bomb in data.enemyBombList)
+
+            {
+
+                if ((data.turns - bomb.birthdate) <= data.enemyBombSpeedChangeAge)
+
+                {
+
+                    if ((data.turns - bomb.birthdate) % bomb.moveSpeed == 0)
+
+                    {
+
+                        Update_EnemyItem_Position(bomb, bomb.direction);
+
+                    }
+
+                }
+
+                else if ((data.turns - bomb.birthdate) > data.enemyBombSpeedChangeAge)
+
+                {
+
+                    if ((data.turns - bomb.birthdate) % bomb.fastSpeed == 0)
+
+                    {
+
+                        Update_EnemyItem_Position(bomb, bomb.direction);
+
+                    }
+
+                }
+
+                EnemyTakingDamage(bomb);
+
+            }
+
+        }
+
+        static async Task UpdateEnemyMissile()
+
+        {
+
+            lock (data.enemyMissileList)
+
+            {
+
+                var updatedUniques = data.enemyMissileList.GroupBy(ship => new { ship.x, ship.y }).Distinct().Select(ship => ship.First()).ToList();
+
+                data.enemyMissileList = updatedUniques;
+
+            }
+
+            UpdateEnemyProjectiles_GeneralRemove<EnemyMissile>(data.enemyMissileList, projectileType: Contents.EnemyMissile);
+
+            foreach (EnemyMissile rocket in data.enemyMissileList)
+
+            {
+
+                if ((data.turns - rocket.birthdate) % data.enemyMissileSpeed == 0)
+
+                {
+
+                    Direction[] directions = new Direction[5];
+
+                    rocket.lastDirection = rocket.direction;
+
+                    rocket.penultimateDirection = rocket.lastDirection;
+
+                    rocket.antepenultimateDirection = rocket.penultimateDirection;
+
+                    rocket.preantepenultimateDirection = rocket.antepenultimateDirection;
+
+                    rocket.doublepreantepenultimateDirection = rocket.preantepenultimateDirection;
+
+                    directions[0] = rocket.lastDirection;
+
+                    directions[1] = rocket.penultimateDirection;
+
+                    directions[2] = rocket.antepenultimateDirection;
+
+                    directions[3] = rocket.preantepenultimateDirection;
+
+                    directions[4] = rocket.doublepreantepenultimateDirection;
+
+                    // if deltaX is positive, move right; if deltaX is negative, move left
+
+                    double deltaX = data.currentPositionX - rocket.x;
+
+                    double deltaY = rocket.y - data.currentPositionY;
+
+                    if (deltaX > deltaY) { rocket.direction = Direction.DiaganolDownRight; }
+
+                    else if ((deltaX < 0.0) && (Math.Abs(deltaX) > deltaY)) { rocket.direction = Direction.DiaganolDownLeft; }
+
+                    else if (deltaX * 2.0 > deltaY) { rocket.direction = Direction.DiaganolDownRight; } //
+
+                    else if ((deltaX < 0.0) && (Math.Abs(deltaX) * 2.0 > deltaY)) { rocket.direction = Direction.DiaganolDownLeft; } //
+
+                    else if (deltaX * 3.0 > deltaY)
+
+                    {
+
+                        if ((from direction in directions.Take(2)
+
+                             where direction == Direction.DiaganolDownRight
+
+                             select direction)
+
+                                .Count(direction => direction == Direction.DiaganolDownRight) <= 1)
+
+                        {
+
+                            rocket.direction = Direction.DiaganolDownRight;
+
+                        }
+
+                        else
+
+                        {
+
+                            rocket.direction = Direction.Down;
+
+                        }
+
+                    }
+
+                    else if ((deltaX < 0.0) && (Math.Abs(deltaX) * 3.0 > deltaY))
+
+                    {
+
+                        if ((from direction in directions.Take(2)
+
+                             where direction == Direction.DiaganolDownLeft
+
+                             select direction)
+
+                                .Count(direction => direction == Direction.DiaganolDownLeft) <= 1)
+
+                        {
+
+                            rocket.direction = Direction.DiaganolDownLeft;
+
+                        }
+
+                        else
+
+                        {
+
+                            rocket.direction = Direction.Down;
+
+                        }
+
+                    }
+
+                    else if (deltaX * 4.0 > deltaY)
+
+                    {
+
+                        if ((from direction in directions.Take(3)
+
+                             where direction == Direction.DiaganolDownRight
+
+                             select direction)
+
+                                .Count(direction => direction == Direction.DiaganolDownRight) <= 1)
+
+                        {
+
+                            rocket.direction = Direction.DiaganolDownRight;
+
+                        }
+
+                        else
+
+                        {
+
+                            rocket.direction = Direction.Down;
+
+                        }
+
+                    }
+
+                    else if ((deltaX < 0.0) && (Math.Abs(deltaX) * 4.0 > deltaY))
+
+                    {
+
+                        if ((from direction in directions.Take(3)
+
+                             where direction == Direction.DiaganolDownLeft
+
+                             select direction)
+
+                                .Count(direction => direction == Direction.DiaganolDownLeft) <= 1)
+
+                        {
+
+                            rocket.direction = Direction.DiaganolDownLeft;
+
+                        }
+
+                        else
+
+                        {
+
+                            rocket.direction = Direction.Down;
+
+                        }
+
+                    }
+
+                    else if (deltaX * 5.0 > deltaY)
+
+                    {
+
+                        if ((from direction in directions.Take(4)
+
+                             where direction == Direction.DiaganolDownRight
+
+                             select direction)
+
+                                .Count(direction => direction == Direction.DiaganolDownRight) <= 1)
+
+                        {
+
+                            rocket.direction = Direction.DiaganolDownRight;
+
+                        }
+
+                        else
+
+                        {
+
+                            rocket.direction = Direction.Down;
+
+                        }
+
+                    }
+
+                    else if ((deltaX < 0.0) && (Math.Abs(deltaX) * 5.0 > deltaY))
+
+                    {
+
+                        if ((from direction in directions.Take(4)
+
+                             where direction == Direction.DiaganolDownLeft
+
+                             select direction)
+
+                                .Count(direction => direction == Direction.DiaganolDownLeft) <= 1)
+
+                        {
+
+                            rocket.direction = Direction.DiaganolDownLeft;
+
+                        }
+
+                        else
+
+                        {
+
+                            rocket.direction = Direction.Down;
+
+                        }
+
+                    }
+
+                    else if (deltaX * 6.0 > deltaY)
+
+                    {
+
+                        if ((from direction in directions //.Take(5) - this has length of 5 anyway
+
+                             where direction == Direction.DiaganolDownRight
+
+                             select direction)
+
+                                .Count(direction => direction == Direction.DiaganolDownRight) <= 1)
+
+                        {
+
+                            rocket.direction = Direction.DiaganolDownRight;
+
+                        }
+
+                        else
+
+                        {
+
+                            rocket.direction = Direction.Down;
+
+                        }
+
+                    }
+
+                    else if ((deltaX < 0.0) && (Math.Abs(deltaX) * 6.0 > deltaY))
+
+                    {
+
+                        if ((from direction in directions //.Take(5) - this has length of 5 anyway
+
+                             where direction == Direction.DiaganolDownLeft
+
+                             select direction)
+
+                                .Count(direction => direction == Direction.DiaganolDownLeft) <= 1)
+
+                        {
+
+                            rocket.direction = Direction.DiaganolDownLeft;
+
+                        }
+
+                        else
+
+                        {
+
+                            rocket.direction = Direction.Down;
+
+                        }
+
+                    }
+
+                    else
+
+                    {
+
+                        rocket.direction = Direction.Down;
+
+                    }
+
+                    Update_EnemyItem_Position(rocket, rocket.direction);
+
+                }
+
+                EnemyTakingDamage(rocket);
+
+            }
+
+        }
+
+        #endregion
+
+        #region Friendly_Projectiles_Updates
+
+        static void AddHealthDrop(int xPosition, int yPosition, int speed)
+
+        {
+
+            HealthPack health = new HealthPack(birthdate: data.turns, xPosition, yPosition, Direction.Down, speed);
+
+            data.friendlyHealthPacks.Add(health);
+
+        }
+
+        static async Task AddFriendlyBullets()
+
+        {
+
+            if ((data.mode == WeapoonMode.bullets) && (data.turns % 4 == 0))
+
+            {
+
+                if (data.diagonalBullets)
+
+                {
+
+                    var newProj1 = new FriendlyLinearProjectile(data.turns, data.currentPositionX - 1, y: 2, Direction.DiaganolUpLeft, isBullet: true);
+
+                    var newProj2 = new FriendlyLinearProjectile(data.turns, data.currentPositionX, y: 2, Direction.Up, isBullet: true);
+
+                    var newProj3 = new FriendlyLinearProjectile(data.turns, data.currentPositionX + 1, y: 2, Direction.DiaganolUpRight, isBullet: true);
+
+                    lock (data.friendlyBullets)
+
+                    {
+
+                        data.friendlyBullets.Add(newProj1);
+
+                        data.friendlyBullets.Add(newProj2);
+
+                        data.friendlyBullets.Add(newProj3);
+
+                    }
+
+                }
+
+                else
+
+                {
+
+                    var newProj1 = new FriendlyLinearProjectile(data.turns, data.currentPositionX - 1, y: 2, Direction.Up, isBullet: true);
+
+                    var newProj2 = new FriendlyLinearProjectile(data.turns, data.currentPositionX, y: 2, Direction.Up, isBullet: true);
+
+                    var newProj3 = new FriendlyLinearProjectile(data.turns, data.currentPositionX + 1, y: 2, Direction.Up, isBullet: true);
+
+                    lock (data.friendlyBullets)
+
+                    {
+
+                        data.friendlyBullets.Add(newProj1);
+
+                        data.friendlyBullets.Add(newProj2);
+
+                        data.friendlyBullets.Add(newProj3);
+
+                    }
+
+                }
+
+            }
+
+        }
+
+        static async Task AddFriendlyLasers()
+
+        {
+
+            if ((data.mode == WeapoonMode.laser) && ((data.turns - data.weaponSwitchBirthday) % (data.laserTimeLength * 2)) <= data.laserTimeLength)
+
+            {
+
+                for (int i = 2; i <= Defaults.yAxis; i++)
+
+                {
+
+                    data.theGrid[data.currentPositionX - 1, i] = Contents.Laser;
+
+                    data.theGrid[data.currentPositionX + 1, i] = Contents.Laser;
+
+                }
+
+            }
+
+        }
+
+        static async Task AddFriendlyRocket()
+
+        {
+
+            if ((data.mode == WeapoonMode.rockets) && ((data.turns - data.weaponSwitchBirthday) % 32 == 0))
+
+            {
+
+                var newProj = new FriendlyLinearProjectile(birthdate: data.turns,
+
+                                                            x: data.currentPositionX,
+
+                                                            y: 3,
+
+                                                            direction: Direction.Up,
+
+                                                            isBullet: false);
+
+                lock (data.friendlyRockets)
+
+                {
+
+                    data.friendlyRockets.Add(newProj);
+
+                }
+
+            }
+
+        }
+
+        static async Task UpdateFriendlyBullets()
+
+        {
+
+            data.friendlyBullets = (from bullet in data.friendlyBullets
+
+                                    where !(bullet.y >= Defaults.yAxis
+
+                                    || bullet.x <= 0
+
+                                    || bullet.x >= Defaults.xAxis)
+
+                                    select bullet).ToList();
+
+            foreach (FriendlyLinearProjectile bullet in data.friendlyBullets)
+
+            {
+
+                if ((data.turns - bullet.birthdate) % data.friendlyBulletSpeed == 0)
+
+                {
+
+                    // UpdateFriendlyProjectilePosition<FriendlyLinearProjectile>(bullet);
+
+                    UpdatePositionGeneral(bullet, bullet.direction);
+
+                }
+
+                data.theGrid[bullet.x, bullet.y] = Contents.Bullet;
+
+            }
+
+        }
+
+        static async Task UpdateFriendlyRocket()
+
+        {
+
+            data.friendlyRockets = (from rocket in data.friendlyRockets
+
+                                    where !(rocket.y >= Defaults.yAxis
+
+                                    || rocket.x <= 0
+
+                                    || rocket.x >= Defaults.xAxis)
+
+                                    select rocket).ToList();
+
+            foreach (FriendlyLinearProjectile rocket in data.friendlyRockets)
+
+            {
+
+                if (((data.turns - rocket.birthdate) % data.friendlyRocketSpeed) == 0)
+
+                {
+
+                    // UpdateFriendlyProjectilePosition<FriendlyLinearProjectile>(rocket);
+
+                    UpdatePositionGeneral(rocket, rocket.direction);
+
+                }
+
+                data.theGrid[rocket.x, rocket.y] = Contents.Rocket;
+
+            }
+
+        }
+
+        static async Task UpdateFriendlyHealthPacks()
+
+        {
+
+            var collectedHealth = (from health in data.friendlyHealthPacks
+
+                                   where health.y == data.currentPositionY
+
+                                   where health.x >= data.currentPositionX - 1
+
+                                   where health.x <= data.currentPositionX + 1
+
+                                   select health).ToList();
+
+            if (collectedHealth.Count > 0 && data.health < 25)
+
+            {
+
+                data.health += collectedHealth.Count() * Defaults.HealthPackValue;
+
+                if (data.health > 25)
+
+                {
+
+                    data.health = 25;
+
+                }
+
+            }
+
+            data.friendlyHealthPacks = (from health in data.friendlyHealthPacks
+
+                                        where !collectedHealth.Contains(health)
+
+                                        select health).ToList();
+
+            data.friendlyHealthPacks = (from health in data.friendlyHealthPacks
+
+                                        where health.y >= 0
+
+                                        select health).ToList();
+
+            if (data.friendlyHealthPacks.Count() >= 1)
+
+            {
+
+                foreach (HealthPack health in data.friendlyHealthPacks)
+
+                {
+
+                    if ((data.turns - health.birthdate) % health.moveSpeed == 0)
+
+                    {
+
+                        UpdatePositionGeneral(health, health.direction);
+
+                    }
+
+                    data.theGrid[health.x, health.y] = Contents.HealthPack;
+
+                }
+
+            }
+
+        }
+
+        /* we dont really need this method
+
+        static void UpdateFriendlyProjectilePosition<T>(T projectile) where T : FriendlyLinearProjectile
+
+        {
+
+            UpdatePositionGeneral(projectile, projectile.direction);
+
+        }
+
+        */
+
+        #endregion
+
+        #endregion
+
+        #region Board_Printing
+
+        static void PrintBoard()
+
+        {
+
+            CustomGrid grid = new CustomGrid();
+
+            PrintTopLongerSolidLine();
+
+            // print top down
+
+            for (int row = Defaults.yAxis; row >= 1; row--)
+
+            {
+
+                PrintLine(row);
+
+            }
+
+            PrintSolidLine();
+
+            Console.WriteLine(" ");
+
+        }
+
+        static void PrintPauseScreen()
+
+        {
+
+            PrintTopLongerSolidLine();
+
+            // print top down
+
+            for (int row = Defaults.yAxis; row >= 1; row--)
+
+            {
+
+                string textToWrite;
+
+                if (row == 40)
+
+                {
+
+                    textToWrite = "Game Paused";
+
+                    PrintTextLineDialog(textToWrite, 40);
+
+                }
+
+                else if (row == 39)
+
+                {
+
+                    textToWrite = "Press P or B to Continue";
+
+                    PrintTextLineDialog(textToWrite, 39);
+
+                }
+
+                else if (row == 38)
+
+                {
+
+                    textToWrite = "Press S to save Game, L to Load Game, O for Options";
+
+                    PrintTextLineDialog(textToWrite, 38);
+
+                }
+
+                else if (row == 37)
+
+                {
+
+                    textToWrite = "Press R to Restart the game";
+
+                    PrintTextLineDialog(textToWrite, 37);
+
+                }
+
+                else if (row == 35 && (data.gameSaved || data.gameLoaded || loadError != 0 || saveError))
+
+                {
+
+                    if (data.gameSaved)
+
+                    {
+
+                        textToWrite = "Game Saved";
+
+                        PrintTextLineDialog(textToWrite, 35);
+
+                        data.gameSaved = false;
+
+                    }
+
+                    else if (data.gameLoaded)
+
+                    {
+
+                        textToWrite = "Game Loaded";
+
+                        PrintTextLineDialog(textToWrite, 35);
+
+                        data.gameLoaded = false;
+
+                    }
+
+                    else if (loadError == 2)
+
+                    {
+
+                        textToWrite = "Error loading saved game";
+
+                        PrintTextLineDialog(textToWrite, 35);
+
+                        // this is done twice though it can be once here or once in the other method. left it here for consistency for now
+
+                        // loadError = 0;
+
+                    }
+
+                    else if (loadError == 1)
+
+                    {
+
+                        textToWrite = "Error loading saved game";
+
+                        PrintTextLineDialog(textToWrite, 35);
+
+                        // this is done twice though it can be once here or once in the other method. left it here for consistency for now
+
+                        // loadError = 0;
+
+                    }
+
+                    else if (saveError)
+
+                    {
+
+                        textToWrite = "Error saving game";
+
+                        PrintTextLineDialog(textToWrite, 35);
+
+                        // this is done twice though it can be once here or once in the other method. left it here for consistency for now
+
+                        saveError = false;
+
+                    }
+
+                }
+
+                else if (row == 34 && loadError != 0)
+
+                {
+
+                    if (loadError == 2)
+
+                    {
+
+                        textToWrite = "Perhaps the file does not exist";
+
+                        PrintTextLineDialog(textToWrite, 34);
+
+                        // loadError = 0;
+
+                    }
+
+                    else if (loadError == 1)
+
+                    {
+
+                        textToWrite = "Perhaps the file is serialized in a different type";
+
+                        PrintTextLineDialog(textToWrite, 34);
+
+                        // loadError = 0;
+
+                    }
+
+                }
+
+                else
+
+                {
+
+                    PrintEmptyLine(row);
+
+                }
+
+            }
+
+            loadError = 0;
+
+            PrintSolidLine();
+
+        }
+
+        static void PrintOptionMenu()
+
+        {
+
+            PrintTopLongerSolidLine();
+
+            // print top down
+
+            for (int row = Defaults.yAxis; row >= 1; row--)
+
+            {
+
+                string textToWrite;
+
+                if (row == 40)
+
+                {
+
+                    textToWrite = "Game Paused";
+
+                    PrintTextLineDialog(textToWrite, 40);
+
+                }
+
+                else if (row == 39)
+
+                {
+
+                    textToWrite = "Press B to go back, Enter to select";
+
+                    PrintTextLineDialog(textToWrite, 39);
+
+                }
+
+                else if (row == 37)
+
+                {
+
+                    textToWrite = "Json with Newton";
+
+                    if (optionSelection == 1)
+
+                    {
+
+                        textToWrite += "*";
+
+                    }
+
+                    PrintTextLineDialog(textToWrite, 37);
+
+                }
+
+                else if (row == 36)
+
+                {
+
+                    textToWrite = "Binary Serialization";
+
+                    if (optionSelection == 2)
+
+                    {
+
+                        textToWrite += "*";
+
+                    }
+
+                    PrintTextLineDialog(textToWrite, 36);
+
+                }
+
+                else if (row == 34)
+
+                {
+
+                    textToWrite = "Change Speed";
+
+                    PrintTextLineDialog(textToWrite, 34);
+
+                }
+
+                else
+
+                {
+
+                    PrintEmptyLine(row);
+
+                }
+
+            }
+
+            PrintSolidLine();
+
+        }
+
+        static void PrintSpeedChangeMenu()
+
+        {
+
+            PrintTopLongerSolidLine();
+
+            // print top down
+
+            for (int row = Defaults.yAxis; row >= 1; row--)
+
+            {
+
+                string textToWrite;
+
+                if (row == 40)
+
+                {
+
+                    textToWrite = "Game Paused";
+
+                    PrintTextLineDialog(textToWrite, 40);
+
+                }
+
+                else if (row == 39)
+
+                {
+
+                    textToWrite = "Press B to go back or type the new speed,";
+
+                    PrintTextLineDialog(textToWrite, 39);
+
+                }
+
+                else if (row == 38)
+
+                {
+
+                    textToWrite = @"Enter 'xmine' to hit the breakpoint and examine the code";
+
+                    PrintTextLineDialog(textToWrite, 38);
+
+                }
+
+                else if (row == 37)
+
+                {
+
+                    textToWrite = @"Enter 'print' to print the board and see a still of the game";
+
+                    PrintTextLineDialog(textToWrite, 37);
+
+                }
+
+                else if (row == 36)
+
+                {
+
+                    textToWrite = "then press Enter to change";
+
+                    PrintTextLineDialog(textToWrite, 36);
+
+                }
+
+                else if (row == 34)
+
+                {
+
+                    textToWrite = $"Current speed is {data.speed}";
+
+                    PrintTextLineDialog(textToWrite, 34);
+
+                }
+
+                else if (row == 33)
+
+                {
+
+                    textToWrite = $"Last text entered was: {Game.enteredText}";
+
+                    PrintTextLineDialog(textToWrite, 33);
+
+                    Game.enteredText = "";
+
+                }
+
+                else if (row == 31)
+
+                {
+
+                    if (speedChangeError)
+
+                    {
+
+                        textToWrite = "There was an error changing the game speed";
+
+                        PrintTextLineDialog(textToWrite, 31);
+
+                        speedChangeError = false;
+
+                    }
+
+                }
+
+                else
+
+                {
+
+                    PrintEmptyLine(row);
+
+                }
+
+            }
+
+            PrintSolidLine();
+
+        }
+
+        static void PrintLine(int yRow)
+
+        {
+
+            Console.Write("|");
+
+            for (int xcolNum = 1; xcolNum <= Defaults.xAxis; xcolNum++)
+
+            {
+
+                #region Friendly_Projectiles
+
+                if (data.theGrid[xcolNum, yRow] == Contents.HealthPack)
+
+                {
+
+                    Console.ForegroundColor = ConsoleColor.Green;
+
+                    Console.Write("$");
+
+                    Console.ForegroundColor = ConsoleColor.White;
+
+                }
+
+                // Print bullets
+
+                else if (data.theGrid[xcolNum, yRow] == Contents.Bullet)
+
+                {
+
+                    Console.ForegroundColor = ConsoleColor.DarkYellow;
+
+                    Console.Write("^");
+
+                    Console.ForegroundColor = ConsoleColor.White;
+
+                }
+
+                // Print rockets
+
+                else if (data.theGrid[xcolNum, yRow] == Contents.Rocket)
+
+                {
+
+                    Console.ForegroundColor = ConsoleColor.DarkYellow;
+
+                    Console.Write("^");
+
+                    Console.ForegroundColor = ConsoleColor.White;
+
+                }
+
+                else if (data.theGrid[xcolNum, yRow + 1] == Contents.Rocket)
+
+                {
+
+                    Console.ForegroundColor = ConsoleColor.DarkYellow;
+
+                    Console.Write("|");
+
+                    Console.ForegroundColor = ConsoleColor.White;
+
+                }
+
+                // Print lasers
+
+                else if (data.theGrid[xcolNum, yRow] == Contents.Laser)
+
+                {
+
+                    Console.ForegroundColor = ConsoleColor.Cyan;
+
+                    Console.Write(";");
+
+                    Console.ForegroundColor = ConsoleColor.White;
+
+                }
+
+                #endregion
+
+                else if (data.theGrid[xcolNum + 1, yRow] == Contents.EnemyFigher)
+
+                {
+
+                    Console.Write(@"\");
+
+                }
+
+                else if (data.theGrid[xcolNum, yRow] == Contents.EnemyFigher)
+
+                {
+
+                    Console.Write(@"_");
+
+                }
+
+                else if (data.theGrid[xcolNum - 1, yRow] == Contents.EnemyFigher)
+
+                {
+
+                    Console.Write(@"/");
+
+                }
+
+                else if (data.theGrid[xcolNum + 1, yRow] == Contents.EnemyBomber)
+
+                {
+
+                    Console.Write(@"/");
+
+                }
+
+                else if (data.theGrid[xcolNum, yRow] == Contents.EnemyBomber)
+
+                {
+
+                    Console.Write(@"-");
+
+                }
+
+                else if (data.theGrid[xcolNum - 1, yRow] == Contents.EnemyBomber)
+
+                {
+
+                    Console.Write(@"\");
+
+                }
+
+                else if (data.theGrid[xcolNum, yRow] == Contents.Smallship)
+
+                {
+
+                    Console.Write("@");
+
+                }
+
+                else if (data.theGrid[xcolNum, yRow] == Contents.EnemyMissile)
+
+                {
+
+                    Console.ForegroundColor = ConsoleColor.Red;
+
+                    Console.Write("+");
+
+                    Console.ForegroundColor = ConsoleColor.White;
+
+                }
+
+                else if (data.theGrid[xcolNum, yRow] == Contents.EnemyBomb)
+
+                {
+
+                    Console.ForegroundColor = ConsoleColor.Red;
+
+                    Console.Write("+");
+
+                    Console.ForegroundColor = ConsoleColor.White;
+
+                }
+
+                else if (data.theGrid[xcolNum, yRow] == Contents.EnemyBullet)
+
+                {
+
+                    Console.ForegroundColor = ConsoleColor.Red;
+
+                    Console.Write("|");
+
+                    Console.ForegroundColor = ConsoleColor.White;
+
+                }
+
+                #region Spaceship
+
+                else if (yRow == 1)
+
+                {
+
+                    if (xcolNum == data.currentPositionX - 1)
+
+                    {
+
+                        Console.ForegroundColor = ConsoleColor.Cyan;
+
+                        Console.Write("<");
+
+                        Console.ForegroundColor = ConsoleColor.White;
+
+                    }
+
+                    else if (xcolNum == data.currentPositionX)
+
+                    {
+
+                        Console.ForegroundColor = ConsoleColor.Cyan;
+
+                        Console.Write("-");
+
+                        Console.ForegroundColor = ConsoleColor.White;
+
+                    }
+
+                    else if (xcolNum == data.currentPositionX + 1)
+
+                    {
+
+                        Console.ForegroundColor = ConsoleColor.Cyan;
+
+                        Console.Write(">");
+
+                        Console.ForegroundColor = ConsoleColor.White;
+
+                    }
+
+                    else
+
+                    {
+
+                        Console.Write(" ");
+
+                    }
+
+                }
+
+                #endregion
+
+                else
+
+                {
+
+                    Console.Write(" ");
+
+                }
+
+            }
+
+            Console.Write("|");
+
+            PrintDiagnostics(yRow);
+
+            Console.WriteLine();
+
+        }
+
+        static void PrintDiagnostics(int yRow)
+
+        {
+
+            if (yRow == 1)
+
+            {
+
+                Console.Write("           Health: ");
+
+                for (int i = 1; i <= data.health; i++)
+
+                {
+
+                    Console.ForegroundColor = ConsoleColor.Red;
+
+                    Console.Write("$ ");
+
+                    Console.ForegroundColor = ConsoleColor.White;
+
+                }
+
+                for (int i = 1; i <= 25 - data.health; i++)
+
+                {
+
+                    Console.Write(" "); // we need to print gaps for as long as the former is short
+
+                }
+
+            }
+
+            if (yRow == 2)
+
+            {
+
+                Console.Write($"     Loose Change {data.looseChange}: ");
+
+                for (int i = 1; i <= data.looseChange; i++)
+
+                {
+
+                    Console.ForegroundColor = ConsoleColor.Gray;
+
+                    Console.Write("* ");
+
+                    Console.ForegroundColor = ConsoleColor.White;
+
+                }
+
+                for (int i = 1; i <= 25 - data.health; i++)
+
+                {
+
+                    Console.Write(" "); // we need to print gaps for as long as the former is short
+
+                }
+
+            }
+
+            if (yRow == 3)
+
+            {
+
+                Console.Write("             Ammo: ");
+
+                for (int i = 1; i <= data.ammo; i++)
+
+                {
+
+                    Console.ForegroundColor = ConsoleColor.Magenta;
+
+                    Console.Write("^ ");
+
+                    Console.ForegroundColor = ConsoleColor.White;
+
+                }
+
+                for (int i = 1; i <= 25 - data.health; i++)
+
+                {
+
+                    Console.Write(" "); // we need to print gaps for as long as the former is short
+
+                }
+
+            }
+
+#if DEBUG
+
+            else if (yRow == Defaults.yAxis)
+
+            {
+
+                Console.Write($"     Time elapsed since last turn: {data.t2 - data.t1}");
+
+            }
+
+            else if (yRow == Defaults.yAxis - 1)
+
+            {
+
+                Console.Write($"     Position is {data.currentPositionX}");
+
+            }
+
+            else if (yRow == Defaults.yAxis - 2)
+
+            {
+
+                Console.Write($"     Turn number is {data.turns}");
+
+            }
+
+            else if (yRow == Defaults.yAxis - 3)
+
+            {
+
+                Console.Write($"     Number of enemy projectiles removed {data.removedEnemyProjectiles}   ");
+
+            }
+
+            else if (yRow == Defaults.yAxis - 4)
+
+            {
+
+                Console.Write($"     Number of enemy ships removed {data.removedEnemyShips}   ");
+
+            }
+
+            else if (yRow == Defaults.yAxis - 5)
+
+            {
+
+                Console.Write($"     Number of enemy ships destroyed {data.destroyedEnemyShips}");
+
+            }
+
+            else if (yRow == Defaults.yAxis - 6)
+
+            {
+
+                Console.Write($"     Memory used: {memoryUsed} KB     ");
+
+            }
+
+            else if (yRow == Defaults.yAxis - 7)
+
+            {
+
+                Console.Write($"     Error Message Code: {Game.errorMessageCode}");
+
+            }
+
+            else if (yRow == Defaults.yAxis - 8)
+
+            {
+
+                Console.Write($"     Error Message Code: {Game.errorMessage}");
+
+            }
+
+#endif
+
+        }
+
+        static void PrintSolidLine()
+
+        {
+
+            Console.Write("]");
+
+            for (int xValue = 1; xValue <= Defaults.xAxis; xValue++)
+
+            {
+
+                Console.Write("-");
+
+            }
+
+            Console.Write("[");
+
+            Console.WriteLine();
+
+        }
+
+        static void PrintTopLongerSolidLine()
+
+        {
+
+            Console.Write("]");
+
+            for (int xValue = 1; xValue <= Defaults.xAxis; xValue++)
+
+            {
+
+                Console.Write("-");
+
+            }
+
+            Console.Write("[");
+
+            Console.Write("        -         -        -         -         -         -         -");
+
+            Console.WriteLine();
+
+        }
+
+        static void PrintEmptyLine(int yRow)
+
+        {
+
+            Console.Write("|");
+
+            for (int xValue = 1; xValue <= Defaults.xAxis; xValue++)
+
+            {
+
+                Console.Write(" ");
+
+            }
+
+            Console.Write("|");
+
+            PrintDiagnostics(yRow);
+
+            Console.WriteLine();
+
+        }
+
+        static void PrintTextLineDialog(string textToWrite, int yRow)
+
+        {
+
+            Console.Write("|");
+
+            for (int i = 1; i <= data.startPauseDialogColumn; i++)
+
+            {
+
+                Console.Write(" ");
+
+            }
+
+            if (optionMode && optionPosition == 1 && yRow == 37)
+
+            {
+
+                Console.ForegroundColor = ConsoleColor.Black;
+
+                Console.BackgroundColor = ConsoleColor.White;
+
+            }
+
+            else if (optionMode && optionPosition == 2 && yRow == 36)
+
+            {
+
+                Console.ForegroundColor = ConsoleColor.Black;
+
+                Console.BackgroundColor = ConsoleColor.White;
+
+            }
+
+            else if (optionMode && optionPosition == 3 && yRow == 34)
+
+            {
+
+                Console.ForegroundColor = ConsoleColor.Black;
+
+                Console.BackgroundColor = ConsoleColor.White;
+
+            }
+
+            Console.Write(textToWrite);
+
+            Console.ForegroundColor = ConsoleColor.White;               // Reset the color scheme every time we change it. this is important
+
+            Console.BackgroundColor = ConsoleColor.Black;               // since no point in the code do we need to think about how we left off
+
+            for (int i = 1; i <= (Defaults.xAxis - data.startPauseDialogColumn - textToWrite.Length); i++)
+
+            {
+
+                Console.Write(" ");
+
+            }
+
+            Console.Write("|");
+
+            PrintDiagnostics(yRow);
+
+            Console.WriteLine();
+
+        }
+
+        #endregion
+
+        #region KeyWatcher_Hot_Source
+
+        internal class KeyWatcher : IObservable<ConsoleKey>
+
+        {
+
+            private readonly List<Subscription> _subscriptions = new List<Subscription>();
+
+            public IDisposable Subscribe(IObserver<ConsoleKey> observer)
+
+            {
+
+                var sub = new Subscription(this, observer);
+
+                _subscriptions.Add(sub);
+
+                return sub;
+
+            }
+
+            public void Run()
+
+            {
+
+                while (Console.KeyAvailable /* && foundOne == false */)
+
+                {
+
+                    // passing true here stops the console from showing the ConsoleKewacter key
+
+                    // the parameter 'intercept' is trivial in spaceinvaders
+
+                    ConsoleKey c = Console.ReadKey(true).Key;
+
+                    // iterate over snapshot to handle the case where the observer
+
+                    // unsubscribes from inside its OnNext method
+
+                    foreach (Subscription sub in _subscriptions.ToArray())
+
+                    {
+
+                        sub.Observer.OnNext(c);
+
+                    }
+
+                }
+
+            }
+
+            private void RemoveSubscription(Subscription sub)
+
+            {
+
+                _subscriptions.Remove(sub);
+
+            }
+
+            private class Subscription : IDisposable
+
+            {
+
+                private KeyWatcher _parent;
+
+                public Subscription(KeyWatcher parent, IObserver<ConsoleKey> observer)
+
+                {
+
+                    _parent = parent;
+
+                    Observer = observer;
+
+                }
+
+                public IObserver<ConsoleKey> Observer { get; }
+
+                public void Dispose()
+
+                {
+
+                    if (_parent != null)
+
+                    {
+
+                        _parent.RemoveSubscription(this);
+
+                        _parent = null;
+
+                    }
+
+                }
+
+            }
+
+        }
+
+        internal class MySubscriber<T> : IObserver<T>
+
+        {
+
+            public void OnNext(T value)
+
+            {
+
+                KeyChanged(value);
+
+            }
+
+            public void OnCompleted() => Console.WriteLine("Complete");
+
+            public void OnError(Exception ex) => Console.WriteLine("Error: " + ex);
+
+            public void KeyChanged(T value)
+
+            {
+
+                // key = Console.ReadKey(true).Key.ToString();
+
+                switch (value)
+
+                {
+
+                    case ConsoleKey.Escape:
+
+                        data.active = false;
+
+                        break;
+
+                    case ConsoleKey.RightArrow:
+
+                        // the spaceship has width of three so it can at most be 1 away from the edge
+
+                        if ((data.currentPositionX + 2) <= Defaults.xAxis)
+
+                        {
+
+                            data.currentPositionX++;
+
+                        }
+
+                        break;
+
+                    case ConsoleKey.LeftArrow:
+
+                        if ((data.currentPositionX - 2) >= 1)
+
+                        {
+
+                            data.currentPositionX--;
+
+                        }
+
+                        break;
+
+                    case ConsoleKey.Tab:
+
+                        WeaponSwitch();
+
+                        break;
+
+                    case ConsoleKey.Z:
+
+                        data.mode = WeapoonMode.laser;
+
+                        break;
+
+                    case ConsoleKey.P:
+
+                        pauseMode = true;
+
+                        break;
+
+                }
+
+            }
+
+            public void WeaponSwitch()
+
+            {
+
+                if (data.mode == WeapoonMode.bullets)
+
+                {
+
+                    data.mode = WeapoonMode.laser;
+
+                    data.weaponSwitchBirthday = data.turns;
+
+                }
+
+                else if (data.mode == WeapoonMode.laser)
+
+                {
+
+                    data.mode = WeapoonMode.rockets;
+
+                    data.weaponSwitchBirthday = data.turns;
+
+                }
+
+                else if (data.mode == WeapoonMode.rockets)
+
+                {
+
+                    data.mode = WeapoonMode.bullets;
+
+                    data.weaponSwitchBirthday = data.turns;
+
+                }
+
+            }
+
+        }
+
+        #endregion
+
+        #region Serialization
+
+        internal static void SerializeGameData(object o)
+
+        {
+
+            File.Delete(sourceFile);
+
+            FileStream fileStream = new FileStream(sourceFile, FileMode.OpenOrCreate, FileAccess.Write, FileShare.None);
+
+            try
+
+            {
+
+                if (data.serializationContext == SerializationContext.Binary)
+
+                {
+
+                    BinaryFormatter binaryFormatter = new BinaryFormatter();
+
+                    binaryFormatter.Serialize(fileStream, o);
+
+                }
+
+                else if (data.serializationContext == SerializationContext.XML)
+
+                {
+
+                    StreamWriter textWriter = new StreamWriter(fileStream);
+
+                    string xmlStringCreated = ToXML(data);
+
+                    textWriter.WriteLine(xmlStringCreated);
+
+                    textWriter.Flush();
+
+                    textWriter.Close();
+
+                }
+
+                else if (data.serializationContext == SerializationContext.JSONNewton)
+
+                {
+
+                    StreamWriter textWriter = new StreamWriter(fileStream);
+
+                    /*
+
+                    var options = new JsonSerializerOptions()
+
+                    {
+
+                        WriteIndented = true
+
+                    };
+
+                    */
+
+                    JObject jObj = JObject.FromObject(data);
+
+                    JsonSerializerSettings settings = new JsonSerializerSettings
+
+                    {
+
+                        TypeNameHandling = TypeNameHandling.All
+
+                    };
+
+                    string jsonString = JsonConvert.SerializeObject(new
+
+                    {
+
+                        operations = jObj
+
+                    }, settings
+
+                    // , formatting: Formatting.Indented
+
+                    );     // for Newtonsoft.Json
+
+                    // string jsonString = JsonSerializer.Serialize(data
+
+                    // for System.Text.Json
+
+                    textWriter.WriteLine(jsonString);
+
+                    textWriter.Flush();
+
+                    textWriter.Close();
+
+                }
+
+                else if (data.serializationContext == SerializationContext.JSONMicrosoft)
+
+                {
+
+                    StreamWriter textWriter = new StreamWriter(fileStream);
+
+                }
+
+                data.gameSaved = true;
+
+            }
+
+            catch (Exception e)
+
+            {
+
+                data.gameSaved = false;
+
+                Console.WriteLine("Error occured during serializarion");
+
+                saveError = true;
+
+                throw;
+
+            }
+
+            finally
+
+            {
+
+                fileStream.Close();
+
+            }
+
+        }
+
+        internal Data DeserializeGameData()
+
+        {
+
+            Data deserialized = new Data();
+
+            try
+
+            {
+
+                FileStream fileStream = new FileStream(sourceFile, FileMode.Open, FileAccess.Read, FileShare.None);
+
+                try
+
+                {
+
+                    if (data.serializationContext == SerializationContext.Binary)
+
+                    {
+
+                        BinaryFormatter binaryFormatter = new BinaryFormatter();
+
+                        deserialized = (Data)binaryFormatter.Deserialize(fileStream);
+
+                    }
+
+                    else if (data.serializationContext == SerializationContext.XML)
+
+                    {
+
+                        StreamReader textReader = new StreamReader(fileStream);
+
+                        string xmlStringRead = textReader.ReadToEnd();
+
+                        var parentData = LoadFromXMLString<ParentData>(xmlStringRead);
+
+                        deserialized = parentData.operations;
+
+                    }
+
+                    else if (data.serializationContext == SerializationContext.JSONNewton)
+
+                    {
+
+                        StreamReader textReader = new StreamReader(fileStream);
+
+                        string jsonStringRead = textReader.ReadToEnd();
+
+                        // var jobject = JObject.Parse(jsonStringRead);
+
+                        var settings = new JsonSerializerSettings // this doesn't really work
+
+                        {
+
+                            NullValueHandling = NullValueHandling.Ignore,
+
+                            MissingMemberHandling = MissingMemberHandling.Ignore,
+
+                            // TypeNameHandling = TypeNameHandling.All
+
+                        };
+
+                        // string jsonStringRead = saveFileAsString;
+
+                        var parentData = JsonConvert.DeserializeObject<ParentData>(jsonStringRead);
+
+                        #region scratchwork
+
+                        // deserialized = JsonSerializer.Deserialize<Data>(jsonStringRead);
+
+                        // deserialized =  parentData.data;
+
+                        // var data = JObject.Parse(jsonStringRead);
+
+                        // var data2 = data.ToObject<ParentData>();
+
+                        #endregion
+
+                        deserialized = parentData.operations;
+
+                    }
+
+                }
+
+                catch (Exception e)
+
+                {
+
+                    Console.WriteLine("Error occured during deserializarion - code 1");
+
+                    loadError = 1;
+
+                }
+
+                finally
+
+                {
+
+                    fileStream.Close();
+
+                }
+
+            }
+
+            catch (Exception e)
+
+            {
+
+                Console.WriteLine("Error occured during deserializarion - code 2");
+
+                loadError = 2;
+
+            }
+
+            finally
+
+            {
+
+                if (loadError == 0)
+
+                {
+
+                    // now that we have made an event for this property, the code below does not accomplish the manual downcast
+
+                    // gameLoadedCheck = true;
+
+                }
+
+            }
+
+            return deserialized;
+
+        }
+
+        internal static string ToXML(object o)
+
+        {
+
+            using (var stringwriter = new System.IO.StringWriter())
+
+            {
+
+                XmlSerializerNamespaces ns = new XmlSerializerNamespaces();
+
+                ns.Add("bae", "baespeaks");
+
+                var serializer = new XmlSerializer(o.GetType());
+
+                serializer.Serialize(stringwriter, o, ns);
+
+                return stringwriter.ToString();
+
+            }
+
+        }
+
+        internal static T LoadFromXMLString<T>(string xmlText)
+
+        {
+
+            using (var stringReader = new System.IO.StringReader(xmlText))
+
+            {
+
+                var serializer = new XmlSerializer(typeof(T));
+
+                return (T)serializer.Deserialize(stringReader);
+
+            }
+
+        }
+
+        #endregion
+
+    }
+
+    #region Data_*
+
+    struct Defaults
+
+    {
+
+        // the smallest x and y values are 1, the largest are below
+
+        public static readonly int xAxis = 71;
+
+        public static readonly int yAxis = 56;
+
+        public static readonly int HealthPackSpeed = 2;
+
+        public static readonly int LooseChangeNeededForHealthDrop = 7;
+
+        public static readonly int HealthPackValue = 2;
+
+        public static readonly int BombSpeedChangeAge = 30;
+
+        public static readonly int stageOneStartDateDefault = 1;
+
+        public static readonly int stageOneTargetDefault = 10;
+
+        public static readonly int stageOneEnemyShuttleWaveSendFrequency_1Default = 25;
+
+        public static readonly int stageOneEnemyShuttleMoveSpeed_1Default = 3;
+
+        public static readonly int stageOneEnemyShuttlePrimaryShootingFrequencyDefault = 100;
+
+        public static readonly int stageOneEnemyShuttleSecondaryShootingFrequencyDefault = 0;
+
+        public static readonly int stageTwoStartDateDefault = 300;
+
+        public static readonly int stageTwoTargetDefault = 15;
+
+        public static readonly int stageTwoEnemyBomberWaveSendFrequency_1Default = 25;
+
+        public static readonly int stageTwoEnemyBomberMoveSpeed_1Default = 5;
+
+        public static readonly int stageTwoEnemyBomberPrimaryBombingFrequencyDefault = 45;
+
+        public static readonly int stageThreeStartDateDefault = 600;
+
+        public static readonly int stageThreeTargetDefault = 15;
+
+        public static readonly int stageThreeEnemyFighterWaveSendFrequency_1Default = 30;
+
+        public static readonly int stageThreeEnemyFighterMoveSpeed_1Default = 3;
+
+        public static readonly int stageThreeEnemyFighterPrimaryMisslingFrequency = 75;
+
+        public static readonly int stageFourStartDateDefault = 1100;
+
+        public static readonly int stageFourTargetDefault = 15;
+
+        public static readonly int stageFourEnemyFighterWaveSendFrequency_1Default = 10;
+
+        public static readonly int stageFourEnemyFighterMoveSpeed_1Default = 2;
+
+        public static readonly int stageFourEnemyFighterPrimaryMisslingFrequency = 50;
+
+        public static readonly int stageFiveStartDateDefault = 1250;
+
+        public static readonly int stageFiveTargetDefault = 15;
+
+        public static readonly int stageFiveEnemyFighterWaveSendFrequency_1Default = 10;
+
+        public static readonly int stageFiveEnemyFighterMoveSpeed_1Default = 2;
+
+        public static readonly int stageFiveEnemyFighterPrimaryMisslingFrequency = 50;
+
+        public static readonly int stageSixStartDateDefault = 1600;
+
+        public static readonly int stageSixTargetDefault = 8;
+
+        public static readonly int stageSixEnemyFighterWaveSendFrequency_1Default = 10;
+
+        public static readonly int stageSixEnemyFighterMoveSpeed_1Default = 2;
+
+        public static readonly int stageSixEnemyFighterPrimaryMisslingFrequency = 25;
+
+        public static readonly int startPauseDialogColumnDefault = 10;
+
+    }
+
+    #region EventArgs
+
+    public class HealthChangedEventArgs : EventArgs
+
+    {
+
+        public readonly double LastHeath;
+
+        public readonly double NewHealth;
+
+        public HealthChangedEventArgs(double lastHealth, double newHealth)
+
+        {
+
+            LastHeath = lastHealth; NewHealth = newHealth;
+
+        }
+
+    }
+
+    public class TurnChangeEventArgs : EventArgs
+
+    {
+
+        public readonly int Turn;
+
+        public TurnChangeEventArgs(int turn)
+
+        {
+
+            Turn = turn;
+
+        }
+
+    }
+
+    #endregion
+
+    [JsonObject]
+
+    [Serializable]
+
+    public class Data
+
+    {
+
+        #region Private_Fields
+
+        // we will refresh the console at every 20ish ms
+
+        private int _speed;
+
+        // the player ship can only be damaged once per five rounds
+
+        private int _immunityBirthdate;
+
+        private bool _immune;
+
+        // the default serialization context
+
+        private SerializationContext _serializationContext;
+
+        // private (int x, int y) _currentPosition;
+
+        private int _currentPositionX;
+
+        private int _currentPositionY;
+
+        private bool _active;
+
+        private int _turns;
+
+        private double _health;
+
+        private int _looseChange;
+
+        private int _ammo;
+
+        // these can be changed potentially in future builds as level progresses
+
+        private double _friendlyLinearProjectileDamage;
+
+        private double _friendlyLaserDamage;
+
+        private double _friendlyRocketDamage;
+
+        private int _laserTimeLength;
+
+        private int _friendlyBulletSpeed;
+
+        private int _friendlyRocketSpeed;
+
+        private bool _diagonalBullets;
+
+        private WeapoonMode _mode;
+
+        private int _weaponSwitchBirthday;
+
+        private int _removedEnemyProjectiles;
+
+        private int _removedEnemyShips;
+
+        private int _destroyedEnemyShips;
+
+        private int _bulletLevel;
+
+        private int _laserLevel;
+
+        private int _missileLevel;
+
+        private int _enemyBulletSpeed_1;
+
+        private int _enemyBombSlowSpeed;
+
+        private int _enemyFastSlowSpeed;
+
+        private int _enemyBombSpeedChangeAge;
+
+        private int _enemyMissileSpeed;
+
+        private DateTime _t1;
+
+        private DateTime _t2;
+
+        [NonSerialized] private int _startPauseDialogColumn;
+
+        private bool _gameSaved;
+
+        private bool _gameLoaded;
+
+        private List<int> _finishedGameRounds;
+
+        private List<FriendlyLinearProjectile> _friendlyBullets;
+
+        private List<FriendlyLinearProjectile> _friendlyRockets;
+
+        private List<HealthPack> _friendlyHealthPacks;
+
+        private List<EnemySpaceShip> _smallEnemyShipsSet_1;
+
+        private List<EnemySpaceShip> _mediumEnemyBomberSet_1;
+
+        private List<EnemySpaceShip> _enemyFighters_1;
+
+        private List<EnemyBullet> _enemyBulletsList;
+
+        private List<EnemyBomb> _enemyBombList;
+
+        private List<EnemyMissile> _enemyMissileList;
+
+        private List<GameRounds> _gameRoundObjects;
+
+        private List<int> _shipStartDates;
+
+        private CustomGrid _theGrid;
+
+        #endregion
+
+        #region EventHandler
+
+        public static event EventHandler<HealthChangedEventArgs> HealthChanged;
+
+        protected virtual void OnHealthChanged(HealthChangedEventArgs e)
+
+        {
+
+            HealthChanged?.Invoke(this, e);
+
+        }
+
+        public static event EventHandler<TurnChangeEventArgs> TurnChanged;
+
+        protected virtual void OnTurnChanged(TurnChangeEventArgs e)
+
+        {
+
+            TurnChanged?.Invoke(this, e);
+
+        }
+
+        #endregion
+
+        #region Properties
+
+        // we will refresh the console at every 20ish ms
+
+        [JsonProperty("speed")] public int speed { get { return _speed; } set { _speed = value; } }
+
+        [JsonProperty("immunityBirthdate")] public int immunityBirthdate { get { return _immunityBirthdate; } set { _immunityBirthdate = value; } }
+
+        [JsonProperty("immune")] public bool immune { get { return _immune; } set { _immune = value; } }
+
+        [JsonProperty("serializationContext")] public SerializationContext serializationContext { get { return _serializationContext; } set { _serializationContext = value; } }
+
+        //public (int x, int y) currentPosition { get { return _currentPosition; } set { _currentPosition = value; } }
+
+        [JsonProperty("currentPositionX")] public int currentPositionX { get { return _currentPositionX; } set { _currentPositionX = value; } }
+
+        [JsonProperty("currentPositionY")] public int currentPositionY { get { return _currentPositionY; } set { _currentPositionY = value; } }
+
+        [JsonProperty("active")] public bool active { get { return _active; } set { _active = value; } }
+
+        [JsonProperty("turns")]
+
+        public int turns
+
+        {
+
+            get { return _turns; }
+
+            set
+
+            {
+
+                if (_turns == value) { return; }
+
+                _turns = value;
+
+                OnTurnChanged(new TurnChangeEventArgs(_turns));
+
+            }
+
+        }
+
+        [JsonProperty("health")]
+
+        public double health
+
+        {
+
+            get { return _health; }
+
+            set
+
+            {
+
+                if (_health == value) { return; }
+
+                double oldHealth = _health;
+
+                _health = value;
+
+                OnHealthChanged(new HealthChangedEventArgs(oldHealth, _health));
+
+            }
+
+        }
+
+        /////// Make an event for this
+
+        [JsonProperty("looseChange")] public int looseChange { get { return _looseChange; } set { _looseChange = value; } }
+
+        [JsonProperty("ammo")] public int ammo { get { return _ammo; } set { _ammo = value; } }
+
+        // these can be changed potentially in future builds as level progresses
+
+        [JsonProperty("friendlyLinearProjectileDamage")] public double friendlyLinearProjectileDamage { get { return _friendlyLinearProjectileDamage; } set { _friendlyLinearProjectileDamage = value; } }
+
+        [JsonProperty("friendlyLaserDamage")] public double friendlyLaserDamage { get { return _friendlyLaserDamage; } set { _friendlyLaserDamage = value; } }
+
+        [JsonProperty("friendlyRocketDamage")] public double friendlyRocketDamage { get { return _friendlyRocketDamage; } set { _friendlyRocketDamage = value; } }
+
+        [JsonProperty("laserTimeLength")] public int laserTimeLength { get { return _laserTimeLength; } set { _laserTimeLength = value; } }
+
+        [JsonProperty("friendlyBulletSpeed")] public int friendlyBulletSpeed { get { return _friendlyBulletSpeed; } set { _friendlyBulletSpeed = value; } }
+
+        [JsonProperty("friendlyRocketSpeed")] public int friendlyRocketSpeed { get { return _friendlyRocketSpeed; } set { _friendlyRocketSpeed = value; } }
+
+        [JsonProperty("diagonalBullets")] public bool diagonalBullets { get { return _diagonalBullets; } set { _diagonalBullets = value; } }
+
+        [JsonProperty("mode")] public WeapoonMode mode { get { return _mode; } set { _mode = value; } }
+
+        [JsonProperty("weaponSwitchBirthday")] public int weaponSwitchBirthday { get { return _weaponSwitchBirthday; } set { _weaponSwitchBirthday = value; } }
+
+        [JsonProperty("removedEnemyProjectiles")] public int removedEnemyProjectiles { get { return _removedEnemyProjectiles; } set { _removedEnemyProjectiles = value; } }
+
+        [JsonProperty("removedEnemyShips")] public int removedEnemyShips { get { return _removedEnemyShips; } set { _removedEnemyShips = value; } }
+
+        [JsonProperty("destroyedEnemyShips")] public int destroyedEnemyShips { get { return _destroyedEnemyShips; } set { _destroyedEnemyShips = value; } }
+
+        [JsonProperty("bulletLevel")] public int bulletLevel { get { return _bulletLevel; } set { _bulletLevel = value; } }
+
+        [JsonProperty("laserLevel")] public int laserLevel { get { return _laserLevel; } set { _laserLevel = value; } }
+
+        [JsonProperty("missileLevel")] public int missileLevel { get { return _missileLevel; } set { _missileLevel = value; } }
+
+        [JsonProperty("enemyBulletSpeed")] public int enemyBulletSpeed_1 { get { return _enemyBulletSpeed_1; } set { _enemyBulletSpeed_1 = value; } }
+
+        [JsonProperty("enemyBombSlowSpeed")] public int enemyBombSlowSpeed { get { return _enemyBombSlowSpeed; } set { _enemyBombSlowSpeed = value; } }
+
+        [JsonProperty("enemyBombFastSpeed")] public int enemyBombFastSpeed { get { return _enemyFastSlowSpeed; } set { _enemyFastSlowSpeed = value; } }
+
+        [JsonProperty("enemyBombSpeedChangeAge")] public int enemyBombSpeedChangeAge { get { return _enemyBombSpeedChangeAge; } set { _enemyBombSpeedChangeAge = value; } }
+
+        [JsonProperty("enemyMissileSpeed")] public int enemyMissileSpeed { get { return _enemyMissileSpeed; } set { _enemyMissileSpeed = value; } }
+
+        [JsonProperty("t1")] public DateTime t1 { get { return _t1; } set { _t1 = value; } }
+
+        [JsonProperty("t2")] public DateTime t2 { get { return _t2; } set { _t2 = value; } }
+
+        [JsonProperty("startPauseDialogColumn")] public int startPauseDialogColumn { get { return _startPauseDialogColumn; } set { _startPauseDialogColumn = value; } }
+
+        [JsonProperty("gameSaved")] public bool gameSaved { get { return _gameSaved; } set { _gameSaved = value; } }
+
+        [JsonProperty("gameLoaded")] public bool gameLoaded { get { return _gameLoaded; } set { _gameLoaded = value; } }
+
+        [JsonProperty("finishedGameRounds")] public List<int> finishedGameRounds { get { return _finishedGameRounds; } set { _finishedGameRounds = value; } }
+
+        [JsonProperty("friendlyBullets")] public List<FriendlyLinearProjectile> friendlyBullets { get { return _friendlyBullets; } set { _friendlyBullets = value; } }
+
+        [JsonProperty("friendlyRockets")] public List<FriendlyLinearProjectile> friendlyRockets { get { return _friendlyRockets; } set { _friendlyRockets = value; } }
+
+        [JsonProperty("friendlyHealthPacks")] public List<HealthPack> friendlyHealthPacks { get { return _friendlyHealthPacks; } set { _friendlyHealthPacks = value; } }
+
+        [JsonProperty("smallEnemyShipsSet_1")] public List<EnemySpaceShip> smallEnemyShipsSet_1 { get { return _smallEnemyShipsSet_1; } set { _smallEnemyShipsSet_1 = value; } }
+
+        [JsonProperty("mediumEnemyBomberSet_1")] public List<EnemySpaceShip> mediumEnemyBomberSet_1 { get { return _mediumEnemyBomberSet_1; } set { _mediumEnemyBomberSet_1 = value; } }
+
+        [JsonProperty("enemyFighters_1")] public List<EnemySpaceShip> enemyFighters_1 { get { return _enemyFighters_1; } set { _enemyFighters_1 = value; } }
+
+        [JsonProperty("enemyBulletsList")] public List<EnemyBullet> enemyBulletsList { get { return _enemyBulletsList; } set { _enemyBulletsList = value; } }
+
+        [JsonProperty("enemyBombList")] public List<EnemyBomb> enemyBombList { get { return _enemyBombList; } set { _enemyBombList = value; } }
+
+        [JsonProperty("enemyMissileList")] public List<EnemyMissile> enemyMissileList { get { return _enemyMissileList; } set { _enemyMissileList = value; } }
+
+        [JsonProperty("gameRoundObjects")] public List<GameRounds> gameRoundObjects { get { return _gameRoundObjects; } set { _gameRoundObjects = value; } }
+
+        [JsonProperty("shipStartDates")] public List<int> shipStartDates { get { return _shipStartDates; } set { _shipStartDates = value; } }
+
+        [JsonProperty("theGrid")] public CustomGrid theGrid { get { return _theGrid; } set { _theGrid = value; } }
+
+        #endregion
+
+        public Data()
+
+        {
+
+            speed = 20;
+
+            serializationContext = SerializationContext.JSONNewton;
+
+            currentPositionX = 36;
+
+            currentPositionY = 1;
+
+            active = true;
+
+            turns = 0;
+
+            health = 10.0;
+
+            looseChange = 0;
+
+            ammo = 5;
+
+            friendlyLinearProjectileDamage = 1.0;
+
+            friendlyLaserDamage = 1.5;
+
+            friendlyRocketDamage = 10.0;
+
+            laserTimeLength = 25;
+
+            friendlyBulletSpeed = 1;
+
+            friendlyRocketSpeed = 6;
+
+            diagonalBullets = false;
+
+            mode = WeapoonMode.bullets;
+
+            weaponSwitchBirthday = 0;
+
+            removedEnemyProjectiles = 0000;
+
+            removedEnemyShips = 0000;
+
+            finishedGameRounds = new List<int>();
+
+            friendlyBullets = new List<FriendlyLinearProjectile>();
+
+            friendlyRockets = new List<FriendlyLinearProjectile>();
+
+            friendlyHealthPacks = new List<HealthPack>();
+
+            smallEnemyShipsSet_1 = new List<EnemySpaceShip>();
+
+            mediumEnemyBomberSet_1 = new List<EnemySpaceShip>();
+
+            enemyFighters_1 = new List<EnemySpaceShip>();
+
+            enemyBulletsList = new List<EnemyBullet>();
+
+            enemyBombList = new List<EnemyBomb>();
+
+            enemyMissileList = new List<EnemyMissile>();
+
+            gameRoundObjects = new List<GameRounds>();
+
+            shipStartDates = new List<int>();
+
+            bulletLevel = 1;
+
+            laserLevel = 1;
+
+            missileLevel = 1;
+
+            enemyBulletSpeed_1 = 2;
+
+            enemyBombSlowSpeed = 10;
+
+            enemyBombFastSpeed = 3;
+
+            enemyBombSpeedChangeAge = 30;
+
+            enemyMissileSpeed = 1;
+
+            t1 = DateTime.Now;
+
+            t2 = DateTime.Now;
+
+            startPauseDialogColumn = 10;
+
+            gameSaved = false;
+
+            gameLoaded = false;
+
+            ResetDataConstants();
+
+        }
+
+        [OnSerialized()]
+
+        internal void SavedGame(StreamingContext context) { gameSaved = true; }
+
+        [OnDeserialized()]
+
+        internal void LoadedGame(StreamingContext context) { gameLoaded = true; ResetDataConstants(); }
+
+        internal void ResetDataConstants()
+
+        {
+
+            theGrid = new CustomGrid();
+
+            startPauseDialogColumn = Defaults.startPauseDialogColumnDefault;
+
+        }
+
+    }
+
+    [Serializable]
+
+    [JsonObject]
+
+    public class ParentData
+
+    {
+
+        [JsonProperty("operations")]
+
+        public Data operations { get; set; }
+
+    }
+
+    [Serializable]
+
+    [JsonObject]
+
+    public class GameRounds
+
+    {
+
+        private bool _finished = false;
+
+        private int _waveNumber;
+
+        private int _endDate;
+
+        private int _startDate;
+
+        private int _target;
+
+        private int _current;
+
+        private int _sendFrequency;
+
+        private int _moveSpeed;
+
+        private int _primaryShootingFrequency;
+
+        private int _secondaryShootingFrequency;
+
+        private Direction _directionToSend;
+
+        // Make an event for this? although we don't remove dictations because the GameRound is over
+
+        [JsonProperty("finished")] public bool finished { get { return _finished; } set { _finished = value; } }
+
+        [JsonProperty("waveNumber")] public int waveNumber { get { return _waveNumber; } set { _waveNumber = value; } }
+
+        [JsonProperty("endDate")] public int endDate { get { return _endDate; } set { _endDate = value; } }
+
+        [JsonProperty("startDate")] public int startDate { get { return _startDate; } set { _startDate = value; } }
+
+        [JsonProperty("target")] public int target { get { return _target; } set { _target = value; } }
+
+        [JsonProperty("current")] public int current { get { return _current; } set { _current = value; } }
+
+        [JsonProperty("sendFrequency")] public int sendFrequency { get { return _sendFrequency; } set { _sendFrequency = value; } }
+
+        [JsonProperty("moveSpeed")] public int moveSpeed { get { return _moveSpeed; } set { _moveSpeed = value; } }
+
+        [JsonProperty("shootingFrequency")] public int primaryShootingFrequency { get { return _primaryShootingFrequency; } set { _primaryShootingFrequency = value; } }
+
+        [JsonProperty("secondaryShootingFrequency")] public int secondaryShootingFrequency { get { return _secondaryShootingFrequency; } set { _secondaryShootingFrequency = value; } }
+
+        [JsonProperty("directionToSend")] public Direction directionToSend { get { return _directionToSend; } set { _directionToSend = value; } }
+
+        public virtual async Task Run() { }
+
+        public async Task RunGeneric(Action<int, int, int, Direction, int, int, int> method, int stage, int turns,
+
+            int xAxisStart, int yAxisStart, Direction directionToSend)
+
+        {
+
+            if (!finished)
+
+            {
+
+                if (turns % sendFrequency == 0)
+
+                {
+
+                    method(stage, xAxisStart, yAxisStart, directionToSend, moveSpeed, primaryShootingFrequency, secondaryShootingFrequency);
+
+                    current++;
+
+                }
+
+                finished = current == target ? true : false;
+
+            }
+
+        }
+
+    }
+
+    #endregion
+
+    #region General_Items_and_Enums_*
+
+    #region General_Classes_*
+
+    #region Items
+
+    [Serializable]
+
+    public class Items
+
+    {
+
+        public int x;
+
+        public int y;
+
+        public Direction direction;
+
+        public int birthdate;
+
+        public int moveSpeed;
+
+    }
+
+    [Serializable]
+
+    public class EnemyItems : Items
+
+    {
+
+        public double health;
+
+        public int width;
+
+        public int height;
+
+        public Contents content;
+
+        public int lastBulletHit;
+
+        public int lastLaserHit;
+
+        public int lastRocketHit;
+
+    }
+
+    #endregion
+
+    #region Enemy_Projectiles
+
+    [Serializable]
+
+    public class EnemyMissile : EnemyProjectile
+
+    {
+
+        public Direction lastDirection;
+
+        public Direction penultimateDirection;
+
+        public Direction antepenultimateDirection;
+
+        public Direction preantepenultimateDirection;
+
+        public Direction doublepreantepenultimateDirection;
+
+        public EnemyMissile(int birthdate, int x, int y, Direction direction, int speed)
+
+        {
+
+            this.birthdate = birthdate;
+
+            this.x = x;
+
+            this.y = y;
+
+            this.direction = direction;
+
+            this.moveSpeed = speed;
+
+            this.width = 1;
+
+            this.height = 1;
+
+            this.health = 2.0;
+
+        }
+
+    }
+
+    [Serializable]
+
+    public class EnemyBomb : EnemyProjectile
+
+    {
+
+        public int fastSpeed;
+
+        public EnemyBomb(int birthdate, int x, int y, Direction direction, int slowSpeed, int fastSpeed)
+
+        {
+
+            this.birthdate = birthdate;
+
+            this.x = x;
+
+            this.y = y;
+
+            this.direction = direction;
+
+            this.moveSpeed = slowSpeed;
+
+            this.fastSpeed = fastSpeed;
+
+            this.width = 1;
+
+            health = 2.0;
+
+        }
+
+    }
+
+    [Serializable]
+
+    public class EnemyBullet : EnemyProjectile
+
+    {
+
+        public EnemyBullet(int birthdate, int x, int y, Direction direction, int speed)
+
+        {
+
+            this.birthdate = birthdate;
+
+            this.x = x;
+
+            this.y = y;
+
+            this.direction = direction;
+
+            this.moveSpeed = speed;
+
+            this.health = 2;
+
+            this.width = 1;
+
+        }
+
+    }
+
+    [Serializable]
+
+    public class EnemyProjectile : EnemyItems
+
+    {
+
+    }
+
+    #endregion
+
+    #region Enemy_Ships
+
+    [Serializable]
+
+    public class EnemyFighter : EnemySpaceShip
+
+    {
+
+        public EnemyFighter(int stage, EnemyLevel level, int birthdate, int xAxis, int yAxis, bool outOfBounds, Direction direction, int speed,
+
+            int primaryShootingSpeed, int secondaryShootingSpeed, Contents weaponOfChoice)
+
+        {
+
+            this.stage = stage;
+
+            this.level = level;
+
+            this.birthdate = birthdate;
+
+            this.x = xAxis;
+
+            this.y = yAxis;
+
+            this.health = GetHealth(level);
+
+            this.outOfBounds = outOfBounds;
+
+            this.direction = direction;
+
+            this.moveSpeed = speed;
+
+            this.primaryShootingSpeed = primaryShootingSpeed;
+
+            this.secondaryShootingSpeed = secondaryShootingSpeed;
+
+            this.weaponOfChoice = weaponOfChoice;
+
+            this.width = 3;
+
+            this.height = 1;
+
+            this.content = Contents.EnemyFigher;
+
+        }
+
+    }
+
+    [Serializable]
+
+    public class EnemyBomber : EnemySpaceShip
+
+    {
+
+        public EnemyBomber(int stage, EnemyLevel level, int birthdate, int xAxis, int yAxis, bool outOfBounds, Direction direction, int speed,
+
+            int primaryShootingSpeed, int secondaryShootingSpeed, Contents weaponOfChoice)
+
+        {
+
+            this.stage = stage;
+
+            this.level = level;
+
+            this.birthdate = birthdate;
+
+            this.x = xAxis;
+
+            this.y = yAxis;
+
+            this.health = GetHealth(level);
+
+            this.outOfBounds = outOfBounds;
+
+            this.direction = direction;
+
+            this.moveSpeed = speed;
+
+            this.primaryShootingSpeed = primaryShootingSpeed;
+
+            this.secondaryShootingSpeed = secondaryShootingSpeed;
+
+            this.weaponOfChoice = weaponOfChoice;
+
+            this.width = 3;
+
+            this.height = 1;
+
+            this.content = Contents.EnemyBomber;
+
+        }
+
+    }
+
+    [Serializable]
+
+    public class EnemyShuttle : EnemySpaceShip
+
+    {
+
+        public EnemyShuttle(int stage, EnemyLevel level, int birthdate, int xAxis, int yAxis, bool outOfBounds, Direction direction, int moveSpeed,
+
+            int primaryShootingSpeed, int secondaryShootingSpeed, Contents weaponOfChoice)
+
+        {
+
+            this.stage = stage;
+
+            this.level = level;
+
+            this.birthdate = birthdate;
+
+            this.x = xAxis;
+
+            this.y = yAxis;
+
+            this.health = GetHealth(level);
+
+            this.outOfBounds = outOfBounds;
+
+            this.direction = direction;
+
+            this.moveSpeed = moveSpeed;
+
+            this.primaryShootingSpeed = primaryShootingSpeed;
+
+            this.secondaryShootingSpeed = secondaryShootingSpeed;
+
+            this.weaponOfChoice = weaponOfChoice;
+
+            this.width = 1;
+
+            this.height = 1;
+
+            this.content = Contents.Smallship;
+
+        }
+
+    }
+
+    [Serializable]
+
+    public class EnemySpaceShip : EnemyItems
+
+    {
+
+        public EnemyLevel level;
+
+        // does this ship get deleted if it goes out of bounds
+
+        public bool outOfBounds;
+
+        public int primaryShootingSpeed;
+
+        public int secondaryShootingSpeed;
+
+        public Contents weaponOfChoice;
+
+        public int stage;
+
+        public double GetHealth(EnemyLevel level)
+
+        {
+
+            switch (level)
+
+            {
+
+                case EnemyLevel.Small:
+
+                    return 2.0;
+
+                case EnemyLevel.Medium:
+
+                    return 4.0;
+
+                case EnemyLevel.Large:
+
+                    return 6.0;
+
+                case EnemyLevel.Tough:
+
+                    return 10.0;
+
+                default:
+
+                    return 0.0;
+
+            }
+
+        }
+
+    }
+
+    #endregion
+
+    #region Friendly_Items
+
+    [Serializable]
+
+    public class HealthPack : Items
+
+    {
+
+        public HealthPack(int birthdate, int x, int y, Direction direction, int speed)
+
+        {
+
+            this.birthdate = birthdate;
+
+            this.x = x;
+
+            this.y = y;
+
+            this.direction = direction;
+
+            this.moveSpeed = speed;
+
+        }
+
+    }
+
+    [Serializable]
+
+    public class FriendlyLinearProjectile : Items
+
+    {
+
+        public bool isBullet;
+
+        public FriendlyLinearProjectile(int birthdate, int x, int y, Direction direction, bool isBullet)
+
+        {
+
+            this.birthdate = birthdate;
+
+            this.x = x;
+
+            this.y = y;
+
+            this.direction = direction;
+
+            this.isBullet = isBullet;
+
+        }
+
+    }
+
+    #endregion
+
+    #region Supplement_Classes
+
+    // this is the CustomGrid class, which when converted to XML will have rows printed as individual objects as opposed to everything being one row
+
+    [Serializable]
+
+    public class CustomGrid
+
+    {
+
+        static private int _offset;
+
+        static private int _xAxis;
+
+        static private int _yAxis;
+
+        static private int _first;
+
+        static private int _second;
+
+        static internal int offset { get { return _offset; } set { _offset = value; } }
+
+        static internal int xAxis { get { return _xAxis; } set { _xAxis = value; } }
+
+        static internal int yAxis { get { return _yAxis; } set { _yAxis = value; } }
+
+        static internal int first { get { return _first; } set { _first = value; } }
+
+        static internal int second { get { return _second; } set { _second = value; } }
+
+        private Contents[][] _theList;
+
+        [JsonProperty("theList")]
+
+        public Contents[][] theList { get { return _theList; } set { _theList = value; } }
+
+        public CustomGrid()
+
+        {
+
+            offset = 2;
+
+            xAxis = 71;
+
+            yAxis = 56;
+
+            first = xAxis + offset + 5;
+
+            second = yAxis + offset + 5;
+
+            theList = new Contents[first][];
+
+            for (int i = 0; i < first; i++) { theList[i] = new Contents[second]; }
+
+        }
+
+        public Contents this[int xVal, int yVal]
+
+        {
+
+            get { return theList[xVal + offset][yVal + offset]; }
+
+            set { theList[xVal + offset][yVal + offset] = value; }
+
+        }
+
+        // if this method is called, you need to reset each inner array individually or the class instance's index values
+
+        // will come up as null if you reset the entire jagged array as a whole
+
+        public void ClearGrid() { for (int i = 0; i < first; i++) { Array.Clear(theList[i], 0, theList[i].Length); } }
+
+    }
+
+    #endregion
+
+    #endregion
+
+    #region Enums
+
+    public enum Direction
+
+    {
+
+        Up = 1,
+
+        Right = 2,
+
+        Down = 3,
+
+        Left = 4,
+
+        DiaganolDownLeft = 5,
+
+        DiaganolDownRight = 6,
+
+        DiaganolUpLeft = 7,
+
+        DiaganolUpRight = 8
+
+    }
+
+    public enum WeapoonMode
+
+    {
+
+        bullets = 1,
+
+        laser = 2,
+
+        rockets = 3,
+
+    }
+
+    public enum Contents
+
+    {
+
+        nothing = 1,
+
+        Bullet = 2,
+
+        Laser = 3,
+
+        Rocket = 4,
+
+        Smallship = 5,
+
+        EnemyBullet = 6,
+
+        EnemyBomb = 7,
+
+        EnemyBomber = 8,
+
+        EnemyFigher = 9,
+
+        EnemyMissile = 10,
+
+        HealthPack = 11,
+
+    }
+
+    public enum EnemyLevel
+
+    {
+
+        Small = 1,
+
+        Medium = 2,
+
+        Large = 3,
+
+        Tough = 4,
+
+    }
+
+    public enum RandomScatterDirection
+
+    {
+
+        DiagonalDownLeft = 1,
+
+        Down = 2,
+
+        DiagonalDownRight = 3,
+
+    }
+
+    public enum SerializationContext
+
+    {
+
+        Binary = 1,
+
+        XML = 2,
+
+        SQL = 3,
+
+        JSONNewton = 4,
+
+        JSONMicrosoft = 5,
+
+    }
+
+    #endregion
+
+    #endregion
+
+}
